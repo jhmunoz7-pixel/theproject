@@ -8,7 +8,7 @@ import {
   Heart, Grain, Blobs, GlobalStyles, primaryBtn, chip,
 } from "@/components/ui";
 
-const P = PALETTES.rosa;
+const P = PALETTES.original;
 
 export default function Landing() {
   const router = useRouter();
@@ -46,9 +46,9 @@ export default function Landing() {
         <div style={{ position: "sticky", top: 16, zIndex: 30, display: "flex", justifyContent: "center", padding: "16px 20px 0" }}>
           <nav className="glass fade" style={{ borderRadius: 100, padding: "10px 12px 10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, width: "100%", maxWidth: 1060 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <svg width="32" height="32" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18.5" fill="none" stroke={P.accent} strokeWidth="1.4" /><text x="20" y="27" textAnchor="middle" fontFamily={SERIF} fontSize="16" fill={P.ink}>tp</text></svg>
+              <svg width="32" height="32" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18.5" fill="none" stroke={P.accent} strokeWidth="1.5" /><text x="20" y="27" textAnchor="middle" fontFamily={SERIF} fontSize="16" fill={P.ink}>tp</text></svg>
               <div>
-                <div style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 14, lineHeight: 1 }}>The Project</div>
+                <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 14, lineHeight: 1 }}>The Project</div>
                 <div style={{ fontSize: 9, letterSpacing: "0.32em", color: P.accent, marginTop: 2 }}>S P A C E</div>
               </div>
             </div>
@@ -64,7 +64,7 @@ export default function Landing() {
             <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 19, color: P.accent, marginBottom: 18 }}>
               para mujeres que lo hacen todo <Heart color={P.accent} size={18} />
             </div>
-            <h1 style={{ fontFamily: SERIF, fontWeight: 600, fontSize: "clamp(2.6rem, 6vw, 4.2rem)", lineHeight: 1.05, margin: "0 0 24px" }}>
+            <h1 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "clamp(2.6rem, 6vw, 4.2rem)", lineHeight: 1.05, margin: "0 0 24px" }}>
               Tu día, tu mente<br />y tu trabajo —<br />
               <span style={{ fontStyle: "italic", color: P.accent }}>en un solo lugar.</span>
             </h1>
@@ -116,7 +116,7 @@ export default function Landing() {
             { t: "Tu guía con IA", d: "Te escucha, te ordena el día y te cuida del burnout.", r: "40px 40px 64px 40px", w: 270, tilt: "-0.8deg", mt: 8 },
           ].map((f, i) => (
             <div key={i} className={`glass-soft lift fade d${i + 2}`} style={{ borderRadius: f.r, padding: "22px 26px", width: f.w, maxWidth: "100%", marginTop: f.mt || 0, transform: `rotate(${f.tilt})` }}>
-              <div style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 18, marginBottom: 6 }}>{f.t}</div>
+              <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 18, marginBottom: 6 }}>{f.t}</div>
               <div style={{ fontSize: 14, color: P.muted, lineHeight: 1.6 }}>{f.d}</div>
             </div>
           ))}
@@ -128,7 +128,7 @@ export default function Landing() {
             <div style={{ display: "inline-block", fontSize: 11, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: P.accent, border: `1px solid ${P.soft}`, borderRadius: 100, padding: "6px 14px", marginBottom: 20 }}>
               Acceso de fundadoras · cupo limitado
             </div>
-            <h2 style={{ fontFamily: SERIF, fontWeight: 600, fontSize: "clamp(2rem, 4.5vw, 2.8rem)", margin: "0 0 10px" }}>Crea tu espacio.</h2>
+            <h2 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "clamp(2rem, 4.5vw, 2.8rem)", margin: "0 0 10px" }}>Crea tu espacio.</h2>
             <p style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 18, color: P.accent, margin: "0 0 30px" }}>
               Tu nombre, tu correo, y en un minuto estás dentro.
             </p>

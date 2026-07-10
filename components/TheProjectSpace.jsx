@@ -63,7 +63,7 @@ export default function TheProjectSpace() {
   const [dayData, setDayData] = useState(null);
   const [signupName, setSignupName] = useState("");
 
-  const P = (profile && PALETTES[profile.paletteKey]) || PALETTES.rosa;
+  const P = (profile && PALETTES[profile.paletteKey]) || PALETTES.original;
 
   useEffect(() => {
     let cancelled = false;
@@ -103,6 +103,10 @@ export default function TheProjectSpace() {
     await saveDay(data); setPhase("dashboard");
   };
   const goPremium = async () => { setPremium(true); setShowPremium(false); await store.set("tp:premium", true); };
+  const updatePalette = async (paletteKey) => {
+    const p = { ...profile, paletteKey };
+    setProfile(p); await store.set("tp:profile", p);
+  };
   const resetAll = async () => {
     try {
       const keys = await store.list("tp:");
@@ -128,7 +132,7 @@ export default function TheProjectSpace() {
       <div style={{ position: "relative", zIndex: 2 }}>
         {phase === "onboard" && <Onboarding onDone={completeOnboard} initialName={signupName} />}
         {phase === "morning" && <MorningCheckin P={P} profile={profile} onDone={completeMorning} />}
-        {phase === "dashboard" && <Dashboard P={P} profile={profile} dayData={dayData} saveDay={saveDay} premium={premium} onPremium={() => setShowPremium(true)} onNewDay={() => setPhase("morning")} onReset={resetAll} />}
+        {phase === "dashboard" && <Dashboard P={P} profile={profile} dayData={dayData} saveDay={saveDay} premium={premium} onPremium={() => setShowPremium(true)} onNewDay={() => setPhase("morning")} onReset={resetAll} onPalette={updatePalette} />}
       </div>
       {phase === "dashboard" && <PauseBubble P={P} premium={premium} onPremium={() => setShowPremium(true)} />}
       {showPremium && <PremiumModal P={P} onClose={() => setShowPremium(false)} onBuy={goPremium} />}
@@ -158,7 +162,7 @@ function Onboarding({ onDone, initialName = "" }) {
   const challenges = ["Me siento abrumada", "No logro desconectar", "Quiero organizarme mejor", "Busco más claridad", "Estoy al borde del burnout"];
   const canNext = [name.trim(), role, paletteKey, challenge][q];
   const next = () => { if (q < 3) setQ(q + 1); else onDone({ name: name.trim(), role, paletteKey, challenge }); };
-  const previewP = (paletteKey && PALETTES[paletteKey]) || PALETTES.rosa;
+  const previewP = (paletteKey && PALETTES[paletteKey]) || PALETTES.original;
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, background: `linear-gradient(160deg, ${previewP.bg}, ${previewP.card} 55%, ${previewP.bg})`, transition: "background 0.6s ease", ...cssVars(previewP) }}>
@@ -172,16 +176,16 @@ function Onboarding({ onDone, initialName = "" }) {
           <>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 26 }}>
               <svg width="40" height="40" viewBox="0 0 40 40">
-                <circle cx="20" cy="20" r="18.5" fill="none" stroke={previewP.accent} strokeWidth="1.4" />
+                <circle cx="20" cy="20" r="18.5" fill="none" stroke={previewP.accent} strokeWidth="1.5" />
                 <text x="20" y="27" textAnchor="middle" fontFamily={SERIF} fontSize="16" fill={previewP.ink}>tp</text>
               </svg>
               <div style={{ textAlign: "left" }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 17, color: previewP.ink, lineHeight: 1 }}>The Project</div>
+                <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 17, color: previewP.ink, lineHeight: 1 }}>The Project</div>
                 <div style={{ fontSize: 11, letterSpacing: "0.3em", color: previewP.accent, marginTop: 3 }}>S P A C E</div>
               </div>
             </div>
 
-            <h1 style={{ fontFamily: SERIF, fontWeight: 600, fontSize: "clamp(2rem, 5.5vw, 3rem)", lineHeight: 1.08, margin: "0 0 18px", color: previewP.ink }}>
+            <h1 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "clamp(2rem, 5.5vw, 3rem)", lineHeight: 1.08, margin: "0 0 18px", color: previewP.ink }}>
               {initialName ? <>Qué gusto tenerte,<br /><span style={{ fontStyle: "italic", color: previewP.accent }}>{initialName}.</span></> : <>Tu día, tu mente y tu trabajo — <span style={{ fontStyle: "italic", color: previewP.accent }}>en un solo lugar.</span></>}
             </h1>
             <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 18, color: previewP.accent, margin: "10px 0 30px" }}>
@@ -300,8 +304,9 @@ function MorningCheckin({ P, profile, onDone }) {
 }
 
 // ═══ DASHBOARD ═══
-function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay, onReset }) {
+function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay, onReset, onPalette }) {
   const [view, setView] = useState("hoy");
+  const [showPalettes, setShowPalettes] = useState(false);
   const update = (patch) => saveDay({ ...dayData, ...patch });
   const dateStr = new Date().toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
 
@@ -311,7 +316,7 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
       <div style={{ position: "sticky", top: 14, zIndex: 30, display: "flex", justifyContent: "center", padding: "14px 16px 0" }}>
         <div className="glass fade" style={{ borderRadius: 100, padding: "9px 12px 9px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, width: "100%", maxWidth: 1080, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-            <svg width="32" height="32" viewBox="0 0 34 34"><circle cx="17" cy="17" r="16" fill="none" stroke={P.soft} strokeWidth="1.2" /><text x="17" y="23" textAnchor="middle" fontFamily={SERIF} fontSize="14" fill={P.ink}>tp</text></svg>
+            <svg width="32" height="32" viewBox="0 0 34 34"><circle cx="17" cy="17" r="16" fill="none" stroke={P.paperSoft} strokeWidth="1.5" /><text x="17" y="23" textAnchor="middle" fontFamily={SERIF} fontSize="14" fill={P.ink}>tp</text></svg>
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 600 }}>Hola, {profile.name}</div>
               <div style={{ fontSize: 10.5, color: P.muted, textTransform: "capitalize" }}>{dateStr}</div>
@@ -323,6 +328,7 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
               <button onClick={() => setView("progreso")} style={tabBtn(P, view === "progreso")}>Mi progreso</button>
             </div>
             {!premium && <button onClick={onPremium} style={{ fontFamily: BODY, fontSize: 12, fontWeight: 600, color: P.card, background: P.accent, border: "none", borderRadius: 100, padding: "8px 15px", cursor: "pointer", boxShadow: `0 6px 16px ${P.accent}44` }}>✦ Premium</button>}
+            <button onClick={() => setShowPalettes(true)} title="Cambiar el color de tu espacio" style={{ background: `conic-gradient(${P.accent}, ${P.accent2}, ${P.soft}, ${P.accent})`, border: `2px solid ${P.card}`, borderRadius: "50%", width: 32, height: 32, cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }} />
             <button onClick={onReset} title="Empezar de nuevo desde la introducción" style={{ fontFamily: BODY, fontSize: 14, color: P.muted, background: "transparent", border: `1px solid ${P.line}`, borderRadius: "50%", width: 34, height: 34, cursor: "pointer" }}>↺</button>
           </div>
         </div>
@@ -333,6 +339,31 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
       ) : (
         <ProgressView P={P} profile={profile} premium={premium} onPremium={onPremium} />
       )}
+
+      {showPalettes && <PaletteModal P={P} current={profile.paletteKey} onPick={(k) => { onPalette(k); setShowPalettes(false); }} onClose={() => setShowPalettes(false)} />}
+    </div>
+  );
+}
+
+// ── Pop-up flotante: cambiar la vibra (paleta) ──────────────
+function PaletteModal({ P, current, onPick, onClose }) {
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(25,20,18,0.35)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, zIndex: 100 }}>
+      <div onClick={(e) => e.stopPropagation()} className="glass fade" style={{ borderRadius: "52px 80px 52px 80px", maxWidth: 560, width: "100%", padding: "40px 36px", textAlign: "center", maxHeight: "86vh", overflowY: "auto" }}>
+        <div style={{ fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: P.muted, marginBottom: 6 }}>Personaliza tu espacio</div>
+        <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 21, color: P.accent, marginBottom: 26 }}>¿Qué vibra traes hoy?</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
+          {Object.entries(PALETTES).map(([key, pal], i) => (
+            <button key={key} onClick={() => onPick(key)} className="lift" style={{ border: `2px solid ${current === key ? pal.accent : "rgba(255,255,255,0.5)"}`, borderRadius: i % 2 ? "24px 40px 24px 40px" : "40px 24px 40px 24px", padding: 12, background: pal.card + "E6", cursor: "pointer", width: 110, boxShadow: current === key ? `0 12px 26px ${pal.accent}44` : "0 4px 12px rgba(0,0,0,0.05)" }}>
+              <div style={{ display: "flex", marginBottom: 8, justifyContent: "center" }}>
+                {[pal.accent, pal.accent2, pal.soft].map((c, j) => <div key={j} style={{ width: 24, height: 24, borderRadius: "50%", background: c, marginLeft: j ? -7 : 0, border: `2px solid ${pal.card}` }} />)}
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: pal.ink, fontFamily: BODY }}>{pal.name}</div>
+            </button>
+          ))}
+        </div>
+        <button onClick={onClose} style={{ fontFamily: BODY, fontSize: 13, color: P.muted, background: "none", border: "none", cursor: "pointer", marginTop: 22, textDecoration: "underline" }}>Cerrar</button>
+      </div>
     </div>
   );
 }
@@ -344,7 +375,7 @@ function TodayView({ P, profile, dayData, update, premium, onPremium, onNewDay }
       <div className="hero-flex" style={{ maxWidth: 1120, margin: "0 auto", padding: "44px 24px 6px" }}>
         <div className="fade d1" style={{ flex: "1.1 1 0", minWidth: 0, paddingTop: 16 }}>
           <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 17, color: P.accent, marginBottom: 8 }}>tu intención de hoy</div>
-          <div style={{ fontFamily: SERIF, fontWeight: 500, fontSize: "clamp(1.8rem, 4.2vw, 2.9rem)", lineHeight: 1.15, color: P.ink }}>{dayData.intention || "Vivir hoy con presencia."}</div>
+          <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "clamp(1.8rem, 4.2vw, 2.9rem)", lineHeight: 1.15, color: P.ink }}>{dayData.intention || "Vivir hoy con presencia."}</div>
           <div style={{ display: "flex", gap: 18, marginTop: 18, fontSize: 13, color: P.muted, flexWrap: "wrap", alignItems: "center" }}>
             <span className="glass-soft" style={{ padding: "7px 14px", borderRadius: 100 }}>Ánimo: <strong style={{ color: P.accent }}>{dayData.mood}</strong></span>
             <span className="glass-soft" style={{ padding: "7px 14px", borderRadius: 100 }}>Energía: <strong style={{ color: P.accent }}>{dayData.energy}</strong></span>
@@ -420,7 +451,7 @@ function ProgressView({ P, profile, premium, onPremium }) {
           { big: journalDays, label: "días de journaling", sub: "tu mente en orden" },
         ].map((m, i) => (
           <div key={i} className={`glass lift fade d${i + 1}`} style={{ borderRadius: radii[i], padding: "24px 22px", transform: `rotate(${i % 2 ? 0.7 : -0.7}deg)` }}>
-            <div style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 42, color: P.accent, lineHeight: 1 }}>{m.big}</div>
+            <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 42, color: P.accent, lineHeight: 1 }}>{m.big}</div>
             <div style={{ fontSize: 13, fontWeight: 600, color: P.ink, marginTop: 8 }}>{m.label}</div>
             <div style={{ fontSize: 12, color: P.muted, marginTop: 2 }}>{m.sub}</div>
           </div>
@@ -439,13 +470,13 @@ function ProgressView({ P, profile, premium, onPremium }) {
       )}
 
       <div className="glass-dark tilt-r fade d4" style={{ borderRadius: "70px 40px 70px 40px", padding: 30, marginBottom: 30 }}>
-        <div style={{ fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: P.soft, marginBottom: 12 }}>✦ Tu lectura del mes</div>
+        <div style={{ fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: P.paperSoft, marginBottom: 12 }}>✦ Tu lectura del mes</div>
         {insight ? (
-          <div style={{ fontSize: 15, lineHeight: 1.7, color: P.bg, whiteSpace: "pre-wrap" }}>{insight}</div>
+          <div style={{ fontSize: 15, lineHeight: 1.7, color: P.paper, whiteSpace: "pre-wrap" }}>{insight}</div>
         ) : (
           <>
-            <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 19, color: P.bg, lineHeight: 1.5, marginBottom: 18 }}>Deja que tu guía lea tu mes y te diga en qué enfocarte.</div>
-            <button onClick={genInsight} disabled={insightLoading} style={{ fontFamily: BODY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 100, border: `1.5px solid ${P.soft}`, background: "transparent", color: P.bg, cursor: "pointer" }}>
+            <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 19, color: P.paper, lineHeight: 1.5, marginBottom: 18 }}>Deja que tu guía lea tu mes y te diga en qué enfocarte.</div>
+            <button onClick={genInsight} disabled={insightLoading} style={{ fontFamily: BODY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 100, border: `1.5px solid ${P.paperSoft}`, background: "transparent", color: P.paper, cursor: "pointer" }}>
               {insightLoading ? "Leyendo tu mes…" : premium ? "✦ Generar mi análisis" : "✦ Análisis del mes (Premium)"}
             </button>
           </>
@@ -496,21 +527,21 @@ function RecoCard({ P, profile, dayData, premium, onPremium }) {
   return (
     <div className="glass-dark floaty" style={{ "--tilt": "0.8deg", borderRadius: "48px 68px 42px 74px", padding: "28px 30px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <Heart color={P.soft} size={16} />
-        <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: P.soft }}>Para ti hoy · {reto}</div>
+        <Heart color={P.paperSoft} size={16} />
+        <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: P.paperSoft }}>Para ti hoy · {reto}</div>
       </div>
-      <div style={{ fontFamily: SERIF, fontWeight: 500, fontSize: "clamp(1.2rem, 3vw, 1.5rem)", color: P.card, marginBottom: 10, lineHeight: 1.2 }}>{base.titulo}</div>
-      <div style={{ fontSize: 14.5, lineHeight: 1.65, color: P.line }}>{base.tip}</div>
+      <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "clamp(1.2rem, 3vw, 1.5rem)", color: P.paper, marginBottom: 10, lineHeight: 1.2 }}>{base.titulo}</div>
+      <div style={{ fontSize: 14.5, lineHeight: 1.65, color: P.paper + "D9" }}>{base.tip}</div>
 
       {aiReco && (
         <div className="fade" style={{ marginTop: 18, paddingTop: 18, borderTop: `1px solid ${P.muted}44` }}>
-          <div style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: P.soft, marginBottom: 8 }}>✦ Tu recomendación de hoy</div>
-          <div style={{ fontSize: 15, lineHeight: 1.65, color: P.card, whiteSpace: "pre-wrap" }}>{aiReco}</div>
+          <div style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: P.paperSoft, marginBottom: 8 }}>✦ Tu recomendación de hoy</div>
+          <div style={{ fontSize: 15, lineHeight: 1.65, color: P.paper, whiteSpace: "pre-wrap" }}>{aiReco}</div>
         </div>
       )}
 
       {!aiReco && (
-        <button onClick={genReco} disabled={loading} style={{ fontFamily: BODY, fontSize: 13, fontWeight: 600, padding: "10px 18px", borderRadius: 100, border: `1px solid ${P.soft}`, background: "transparent", color: P.card, cursor: "pointer", marginTop: 16 }}>
+        <button onClick={genReco} disabled={loading} style={{ fontFamily: BODY, fontSize: 13, fontWeight: 600, padding: "10px 18px", borderRadius: 100, border: `1px solid ${P.paperSoft}`, background: "transparent", color: P.paper, cursor: "pointer", marginTop: 16 }}>
           {loading ? "Pensando en ti…" : premium ? "✦ Dame una recomendación personalizada" : "✦ Recomendación personalizada (Premium)"}
         </button>
       )}
@@ -614,9 +645,9 @@ function AffirmWidget({ P, dayData, update }) {
   const shown = dayData.affirmation || affs[new Date().getDate() % affs.length];
   return (
     <div className="glass-dark floaty-slow" style={{ "--tilt": "-1deg", borderRadius: "58% 42% 55% 45% / 48% 55% 45% 52%", padding: "38px 30px", textAlign: "center" }}>
-      <Heart color={P.soft} size={16} />
-      <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 19, color: P.bg, lineHeight: 1.45, margin: "12px 0 18px" }}>"{shown}"</div>
-      <button onClick={gen} disabled={loading} style={{ fontFamily: BODY, fontSize: 12.5, fontWeight: 600, padding: "9px 16px", borderRadius: 100, border: `1px solid ${P.soft}`, background: "transparent", color: P.bg, cursor: "pointer" }}>
+      <Heart color={P.paperSoft} size={16} />
+      <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 19, color: P.paper, lineHeight: 1.45, margin: "12px 0 18px" }}>"{shown}"</div>
+      <button onClick={gen} disabled={loading} style={{ fontFamily: BODY, fontSize: 12.5, fontWeight: 600, padding: "9px 16px", borderRadius: 100, border: `1px solid ${P.paperSoft}`, background: "transparent", color: P.paper, cursor: "pointer" }}>
         {loading ? "Pensando…" : "✦ Otra afirmación"}
       </button>
     </div>
@@ -673,9 +704,9 @@ function PauseBubble({ P, premium, onPremium }) {
         onClick={() => setOpen(true)}
         title="Pausa consciente"
         className="glass-dark floaty"
-        style={{ "--tilt": "0deg", position: "fixed", bottom: 26, right: 26, zIndex: 60, width: 76, height: 76, borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, color: P.bg }}
+        style={{ "--tilt": "0deg", position: "fixed", bottom: 26, right: 26, zIndex: 60, width: 76, height: 76, borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, color: P.paper }}
       >
-        <Heart color={P.soft} size={18} />
+        <Heart color={P.paperSoft} size={18} />
         <span style={{ fontFamily: BODY, fontSize: 10.5, fontWeight: 600, letterSpacing: "0.06em" }}>pausa</span>
       </button>
 
@@ -707,9 +738,9 @@ function PremiumModal({ P, onClose, onBuy }) {
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(25,20,18,0.4)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, zIndex: 100 }}>
       <div onClick={(e) => e.stopPropagation()} className="glass fade" style={{ borderRadius: "56px 84px 56px 84px", maxWidth: 460, width: "100%", padding: "44px 40px", textAlign: "center" }}>
         <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 20, color: P.accent, marginBottom: 6 }}>The Project ✦ Premium</div>
-        <h2 style={{ fontFamily: SERIF, fontWeight: 600, fontSize: "2rem", margin: "0 0 4px", color: P.ink }}>Tu día, potenciado con IA</h2>
+        <h2 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "2rem", margin: "0 0 4px", color: P.ink }}>Tu día, potenciado con IA</h2>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 6, margin: "16px 0 24px" }}>
-          <span style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 44, color: P.ink }}>$10</span>
+          <span style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 44, color: P.ink }}>$10</span>
           <span style={{ fontSize: 15, color: P.muted }}>USD / mes</span>
         </div>
         <div style={{ textAlign: "left", marginBottom: 28 }}>

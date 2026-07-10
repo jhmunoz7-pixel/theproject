@@ -3,7 +3,10 @@
 // ─── Sistema de diseño compartido: paletas, glass, blobs, primitivas ───
 
 export const PALETTES = {
-  original: { name: "Original", bg: "#F1EBDD", card: "#F9F5EC", ink: "#33372C", accent: "#6E7444", accent2: "#B08A5A", soft: "#AAB488", muted: "#9A8F82", line: "#DDD4C4", dark: "#33372C" },
+  // Paleta de marca (brand guidelines): Tinta, Olivo, Olivo claro, Topo + Marfil/Nude/Arena/Greige
+  original: { name: "The Project", bg: "#F1EBDD", card: "#F9F5EC", ink: "#33372C", accent: "#6E7444", accent2: "#9A8F82", soft: "#AAB488", muted: "#9A8F82", line: "#DDD4C4", dark: "#33372C" },
+  greige: { name: "Greige", bg: "#E7DDCD", card: "#F1EBDD", ink: "#33372C", accent: "#8C7F68", accent2: "#6E7444", soft: "#CDBFAD", muted: "#9A8F82", line: "#DDD4C4", dark: "#3A352C" },
+  noche: { name: "Noche", bg: "#282C21", card: "#33372C", ink: "#F1EBDD", accent: "#AAB488", accent2: "#CDBFAD", soft: "#6E7444", muted: "#9A8F82", line: "#4A4E3F", dark: "#1E2119" },
   rosa: { name: "Rosa polvo", bg: "#F0E6E4", card: "#F9F1EF", ink: "#3A2E30", accent: "#A85668", accent2: "#7D8B6A", soft: "#D9A9AE", muted: "#9A8286", line: "#E3D0CE", dark: "#3E2C30" },
   salvia: { name: "Salvia", bg: "#E6E9E0", card: "#F2F4EC", ink: "#2F352C", accent: "#6E8266", accent2: "#B0728A", soft: "#A9BCA0", muted: "#828A7C", line: "#D2D8C8", dark: "#2C332A" },
   malva: { name: "Malva", bg: "#EBE5EA", card: "#F5F0F4", ink: "#332B33", accent: "#8A5E7E", accent2: "#8A9270", soft: "#C4A5BC", muted: "#8E8290", line: "#DDD0DA", dark: "#2F2630" },
@@ -13,11 +16,26 @@ export const PALETTES = {
   miel: { name: "Miel", bg: "#F1EADA", card: "#F9F3E6", ink: "#352E20", accent: "#A9822F", accent2: "#7D8B6A", soft: "#D6BC82", muted: "#948970", line: "#E1D5BC", dark: "#2C2618" },
   lavanda: { name: "Lavanda", bg: "#E9E7EF", card: "#F4F2F9", ink: "#2E2B38", accent: "#6B5E96", accent2: "#A87295", soft: "#B4ABD1", muted: "#847E93", line: "#D8D3E4", dark: "#282438" },
   niebla: { name: "Niebla", bg: "#E4E8EA", card: "#F1F4F5", ink: "#293034", accent: "#4E7382", accent2: "#B0728A", soft: "#98B4BE", muted: "#7E888D", line: "#D0D9DC", dark: "#232B2E" },
+  vino: { name: "Vino", bg: "#EFE3E3", card: "#F8F0EF", ink: "#3B2A2E", accent: "#7E3B4D", accent2: "#6E7444", soft: "#C79AA5", muted: "#97838A", line: "#E2CFD1", dark: "#33232A" },
+  cacao: { name: "Cacao", bg: "#EDE4DC", card: "#F7F1EA", ink: "#362C24", accent: "#7A5C44", accent2: "#7D8B6A", soft: "#C4A98F", muted: "#98897B", line: "#E0D2C4", dark: "#2E251E" },
+  bosque: { name: "Bosque", bg: "#E3E8E1", card: "#F0F4EE", ink: "#28322B", accent: "#3F6349", accent2: "#B08A5A", soft: "#9BB8A3", muted: "#7E8C82", line: "#CFDACF", dark: "#222B25" },
+  indigo: { name: "Índigo", bg: "#E6E6EE", card: "#F2F1F8", ink: "#2B2B3A", accent: "#4A4E7C", accent2: "#B0728A", soft: "#A5A8CC", muted: "#82849B", line: "#D5D5E4", dark: "#242432" },
 };
 
-export const SERIF = "'Fraunces', Georgia, serif";
+// Texto sobre superficies oscuras (glass-dark): en paletas claras es el propio
+// bg/soft; en paletas oscuras (Noche) necesita tonos claros explícitos.
+PALETTES.noche.paper = "#F1EBDD";
+PALETTES.noche.paperSoft = "#AAB488";
+for (const p of Object.values(PALETTES)) {
+  p.paper = p.paper || p.bg;
+  p.paperSoft = p.paperSoft || p.soft;
+}
+
+// Tipografía de marca (brand guidelines):
+// Gloock — display / titulares · Crimson Pro Italic — subtítulos y quotes · Work Sans — cuerpo
+export const SERIF = "'Gloock', Georgia, serif";
 export const BODY = "'Work Sans', -apple-system, system-ui, sans-serif";
-export const ITALIC = "'Fraunces', Georgia, serif";
+export const ITALIC = "'Crimson Pro', Georgia, serif";
 
 export const dayId = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
@@ -184,7 +202,7 @@ export const aiMini = (P) => ({ fontFamily: BODY, fontSize: 13, fontWeight: 600,
 export const tabBtn = (P, active) => ({ fontFamily: BODY, fontSize: 13, fontWeight: 600, padding: "8px 18px", borderRadius: 100, border: "none", background: active ? P.accent : "transparent", color: active ? P.card : P.muted, cursor: "pointer", boxShadow: active ? `0 6px 16px ${P.accent}44` : "none" });
 
 export function H1({ P, children, size = "clamp(2rem, 5vw, 3rem)" }) {
-  return <h1 style={{ fontFamily: SERIF, fontWeight: 600, fontSize: size, lineHeight: 1.08, margin: "0 0 14px", color: P.ink }}>{children}</h1>;
+  return <h1 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: size, lineHeight: 1.08, margin: "0 0 14px", color: P.ink }}>{children}</h1>;
 }
 export function Sub({ P, children }) {
   return <p style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 19, color: P.accent, margin: "0 0 32px", lineHeight: 1.4 }}>{children}</p>;

@@ -7,6 +7,14 @@ journaling y bienestar en un solo espacio diario.
 Flujo: **onboarding** (una vez) → **check-in diario** (se adapta a mañana/tarde/noche)
 → **dashboard** tipo Monday con widgets → pestaña **Mi progreso** con métricas del mes.
 
+## Rutas
+
+- `/` — **Landing page** de venta: qué es The Project, cómo ayuda, testimonios,
+  planes, formulario para pedir info (guarda leads en Supabase) y link a
+  [Instagram](https://instagram.com/theprojectbyfer). Estética editorial
+  crema/oliva/dorado con carruseles y transiciones al hacer scroll.
+- `/space` — la app (onboarding → check-in → dashboard).
+
 ## Stack
 
 - **Next.js 15** (App Router) — listo para Vercel.
@@ -41,8 +49,10 @@ responden "no configurado". Para la experiencia completa, llena `.env.local`.
 ## Supabase (persistencia real)
 
 1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. Corre la migración `supabase/migrations/0001_init.sql` en el **SQL Editor**
-   (crea la tabla `user_kv` con Row Level Security).
+2. Corre las migraciones de `supabase/migrations/` en el **SQL Editor**:
+   `0001_init.sql` (tabla `user_kv` con Row Level Security) y
+   `0002_leads.sql` (tabla `leads` para el formulario de la landing —
+   inserción pública, lectura solo desde el dashboard de Supabase).
 3. **Authentication → Providers → Anonymous sign-ins: ON.** La app usa sesión
    anónima para que cada navegador tenga su propio espacio persistente.
 4. Copia **Project URL** y **anon public key** a tus variables de entorno.

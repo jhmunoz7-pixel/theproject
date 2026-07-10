@@ -14,16 +14,28 @@ export async function GET() {
     urlHost = new URL(url.trim()).host;
   } catch {}
 
-  // El anon key es un JWT cuyo payload trae el ref del proyecto (dato público).
+  // Formato de la llave: JWT clásico (eyJ…, payload trae el ref del proyecto,
+  // dato público) o el formato nuevo corto (sb_publishable_…).
+  let keyFormat = null;
   let keyProject = null;
-  try {
-    const payload = JSON.parse(
-      Buffer.from(anon.trim().split(".")[1], "base64").toString("utf8"),
-    );
-    keyProject = payload.ref || null;
-  } catch {}
+  if (anon) {
+    const k = anon.trim();
+    if (k.startsWith("sb_publishable_")) {
+      keyFormat = "publishable";
+    } else if (k.startsWith("eyJ")) {
+      keyFormat = "jwt";
+      try {
+        const payload = JSON.parse(
+          Buffer.from(k.split(".")[1], "base64").toString("utf8"),
+        );
+        keyProject = payload.ref || null;
+      } catch {}
+    } else {
+      keyFormat = "desconocido";
+    }
+  }
 
-  // Prueba de conexión real desde el servidor.
+  // Prueba de conexión real desde el servidor — la señal definitiva.
   let reachable = null;
   if (url && anon) {
     try {
@@ -41,8 +53,8 @@ export async function GET() {
     supabase_url: Boolean(url),
     supabase_anon_key: Boolean(anon),
     url_host: urlHost,
+    key_format: keyFormat,
     key_project: keyProject,
-    url_and_key_match: Boolean(urlHost && keyProject && urlHost.startsWith(keyProject + ".")),
     supabase_reachable: reachable,
     anthropic: Boolean(process.env.ANTHROPIC_API_KEY),
     stripe: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID),

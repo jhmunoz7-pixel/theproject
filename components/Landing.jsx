@@ -903,6 +903,17 @@ function LeadForm() {
     width: "100%",
     transition: "border-color .25s ease",
   };
+  const labelStyle = {
+    fontFamily: BODY,
+    fontSize: 11.5,
+    fontWeight: 600,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+    color: C.muted,
+    marginBottom: 7,
+    display: "block",
+    textAlign: "left",
+  };
   const focus = (e) => (e.target.style.borderColor = C.accent);
   const blur = (e) => (e.target.style.borderColor = C.line);
 
@@ -945,34 +956,43 @@ function LeadForm() {
       }}
     >
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-        <input
-          style={{ ...field, flex: "1 1 200px" }}
-          placeholder="Tu nombre"
-          value={form.name}
-          onChange={set("name")}
-          onFocus={focus}
-          onBlur={blur}
-          required
-        />
-        <input
-          style={{ ...field, flex: "1 1 200px" }}
-          type="email"
-          placeholder="Tu correo"
-          value={form.email}
-          onChange={set("email")}
-          onFocus={focus}
-          onBlur={blur}
-          required
-        />
+        <label style={{ flex: "1 1 200px" }}>
+          <span style={labelStyle}>Nombre</span>
+          <input
+            style={field}
+            placeholder="Ej. María Olivera"
+            value={form.name}
+            onChange={set("name")}
+            onFocus={focus}
+            onBlur={blur}
+            required
+          />
+        </label>
+        <label style={{ flex: "1 1 200px" }}>
+          <span style={labelStyle}>Correo electrónico</span>
+          <input
+            style={field}
+            type="email"
+            placeholder="tucorreo@ejemplo.com"
+            value={form.email}
+            onChange={set("email")}
+            onFocus={focus}
+            onBlur={blur}
+            required
+          />
+        </label>
       </div>
-      <textarea
-        style={{ ...field, resize: "vertical", minHeight: 110 }}
-        placeholder="Cuéntanos: ¿qué te gustaría saber de The Project?"
-        value={form.message}
-        onChange={set("message")}
-        onFocus={focus}
-        onBlur={blur}
-      />
+      <label>
+        <span style={labelStyle}>Mensaje (opcional)</span>
+        <textarea
+          style={{ ...field, resize: "vertical", minHeight: 110 }}
+          placeholder="Cuéntanos: ¿qué te gustaría saber de The Project?"
+          value={form.message}
+          onChange={set("message")}
+          onFocus={focus}
+          onBlur={blur}
+        />
+      </label>
       {status === "error" && (
         <div style={{ fontFamily: BODY, fontSize: 13.5, color: "#A85668" }}>
           Algo falló al enviar. Intenta de nuevo, o escríbenos por Instagram:{" "}

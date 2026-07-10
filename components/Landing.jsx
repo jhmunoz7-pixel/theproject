@@ -792,18 +792,18 @@ function ArchMarquee() {
 const MONTH = [
   {
     week: "Semana 1",
-    title: "Masterclass con invitada especial",
-    text: "Un hack corporativo real + Q&A íntimo. Mentes que ya recorrieron el camino, sin filtros.",
+    title: "Coaching con Fer",
+    text: "Tu sesión para aterrizar dónde estás y qué quieres. De ahí sale tu enfoque del mes — todo lo demás gira alrededor de ti.",
   },
   {
     week: "Semana 2",
-    title: "Wellness check-in",
-    text: "Meditación guiada + journaling en grupo. Bajarle al ruido para escucharte.",
+    title: "Webinar con invitada especial",
+    text: "Un hack corporativo real + Q&A íntimo. Mentes que ya recorrieron el camino, sin filtros.",
   },
   {
     week: "Semana 3",
-    title: "Tu Project Review con Fer",
-    text: "Sesión de crecimiento y propósito: aterrizar tu “qué quiero” en el siguiente paso.",
+    title: "Wellness check-in",
+    text: "Journaling en grupo + meditación guiada por una experta invitada. Bajarle al ruido para escucharte.",
   },
   {
     week: "Semana 4",
@@ -1232,9 +1232,9 @@ function Plans() {
       featured: true,
       tag: "Precio fundadoras · solo las primeras",
       items: [
-        "Masterclass de mindset con invitadas",
-        "Sesión “¿Qué quiero?” guiada",
-        "Tu Project Review con Fer",
+        "Coaching con Fer: dónde estás y qué quieres",
+        "Webinar mensual con invitada especial",
+        "Wellness check-in: journaling + meditación guiada",
         "Networking consciente mensual",
         "Reto AWAKE de 21 días acompañado",
         "Comunidad privada de mujeres",

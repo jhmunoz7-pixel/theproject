@@ -5,31 +5,52 @@ import Link from "next/link";
 import { supabase } from "@/lib/store";
 
 // ═══════════════════════════════════════════════════════════
-//  THE PROJECT · Landing
-//  Estética editorial (crema + oliva + dorado, serif Fraunces)
-//  con carruseles, tabs y transiciones al hacer scroll.
+//  THE PROJECT · Landing del ecosistema
+//  Find · Elevate · Rise — app + mentoring + networking
+//  consciente + reto AWAKE 21 días + red de mujeres.
+//  Paleta y tipografías del brand guideline (Gloock /
+//  Crimson Pro / Work Sans · tinta, olivo, marfil).
 // ═══════════════════════════════════════════════════════════
 
 const C = {
-  bg: "#F1EBDD",
-  card: "#F9F5EC",
-  ink: "#33372C",
-  accent: "#6E7444",
-  gold: "#B08A5A",
-  soft: "#AAB488",
-  muted: "#9A8F82",
-  line: "#DDD4C4",
-  dark: "#33372C",
+  ink: "#33372C", //   tinta
+  olive: "#6E7444", // olivo
+  soft: "#AAB488", //  olivo claro
+  taupe: "#9A8F82", // topo
+  greige: "#CDBFAD",
+  sand: "#DDD4C4", //  arena
+  nude: "#E7DDCD",
+  ivory: "#F1EBDD", // marfil
+  cream: "#FBF7EE",
 };
 
-const SERIF = "'Fraunces', Georgia, serif";
+const DISPLAY = "'Gloock', Georgia, serif";
+const ACCENT = "'Crimson Pro', Georgia, serif";
 const BODY = "'Work Sans', -apple-system, system-ui, sans-serif";
 
 const INSTAGRAM_URL = "https://instagram.com/theprojectbyfer";
 const INSTAGRAM_HANDLE = "@theprojectbyfer";
+const APP_URL = "/espacio";
 
-// ── Textura de grano (misma que la app) ─────────────────────
-function Grain({ opacity = 0.05 }) {
+// ── Monograma tp (círculo de contorno fino, nunca relleno) ──
+function TpMark({ size = 40, color = C.ink }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <circle cx="24" cy="24" r="22.5" stroke={color} strokeWidth="1.5" />
+      <text
+        x="24"
+        y="30"
+        textAnchor="middle"
+        style={{ font: `600 17px ${ACCENT}`, fontStyle: "italic", fill: color }}
+      >
+        tp
+      </text>
+    </svg>
+  );
+}
+
+// ── Textura de grano ────────────────────────────────────────
+function Grain({ opacity = 0.045 }) {
   const svg = encodeURIComponent(
     `<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>`,
   );
@@ -45,44 +66,6 @@ function Grain({ opacity = 0.05 }) {
         backgroundImage: `url("data:image/svg+xml,${svg}")`,
       }}
     />
-  );
-}
-
-// ── Rama de hojas doradas (decoración estilo Pinterest) ─────
-function GoldBranch({ style, flip = false, size = 220 }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 200 200"
-      fill="none"
-      style={{
-        position: "absolute",
-        pointerEvents: "none",
-        opacity: 0.5,
-        transform: flip ? "scaleX(-1)" : "none",
-        ...style,
-      }}
-    >
-      <path d="M20 190 C 60 130, 90 90, 170 20" stroke={C.gold} strokeWidth="1.6" />
-      {[
-        [58, 132, -40],
-        [78, 108, -30],
-        [100, 84, -25],
-        [124, 60, -18],
-        [146, 40, -10],
-      ].map(([x, y, r], i) => (
-        <g key={i} transform={`translate(${x} ${y}) rotate(${r})`}>
-          <path
-            d="M0 0 C 12 -14, 30 -14, 40 0 C 30 14, 12 14, 0 0 Z"
-            fill="none"
-            stroke={C.gold}
-            strokeWidth="1.4"
-          />
-          <path d="M2 0 L 38 0" stroke={C.gold} strokeWidth="0.8" opacity="0.7" />
-        </g>
-      ))}
-    </svg>
   );
 }
 
@@ -114,7 +97,7 @@ function Reveal({ children, delay = 0, style }) {
       ref={ref}
       style={{
         opacity: on ? 1 : 0,
-        transform: on ? "none" : "translateY(28px)",
+        transform: on ? "none" : "translateY(26px)",
         transition: `opacity 0.9s ease ${delay}ms, transform 0.9s cubic-bezier(.22,1,.36,1) ${delay}ms`,
         ...style,
       }}
@@ -125,28 +108,31 @@ function Reveal({ children, delay = 0, style }) {
 }
 
 // ── Botones ─────────────────────────────────────────────────
-function CtaButton({ children, href, onClick, ghost = false, small = false }) {
+function Cta({ children, href, onClick, ghost = false, small = false, dark = false }) {
+  const solidBg = dark ? C.ivory : C.olive;
+  const solidColor = dark ? C.ink : C.cream;
+  const ghostColor = dark ? C.ivory : C.ink;
   const base = {
     display: "inline-block",
     fontFamily: BODY,
     fontWeight: 600,
     fontSize: small ? 13 : 15,
     letterSpacing: 0.4,
-    padding: small ? "10px 22px" : "16px 36px",
+    padding: small ? "10px 22px" : "17px 38px",
     borderRadius: 999,
-    border: `1.5px solid ${ghost ? C.ink : C.accent}`,
-    background: ghost ? "transparent" : C.accent,
-    color: ghost ? C.ink : "#FDFBF5",
+    border: `1.5px solid ${ghost ? ghostColor : solidBg}`,
+    background: ghost ? "transparent" : solidBg,
+    color: ghost ? ghostColor : solidColor,
     cursor: "pointer",
     textDecoration: "none",
     transition: "transform .25s ease, box-shadow .25s ease, background .25s ease, color .25s ease",
   };
   const hover = (e, over) => {
     e.currentTarget.style.transform = over ? "translateY(-2px)" : "none";
-    e.currentTarget.style.boxShadow = over ? "0 10px 26px rgba(51,55,44,.18)" : "none";
+    e.currentTarget.style.boxShadow = over ? "0 12px 28px rgba(51,55,44,.22)" : "none";
     if (ghost) {
-      e.currentTarget.style.background = over ? C.ink : "transparent";
-      e.currentTarget.style.color = over ? "#FDFBF5" : C.ink;
+      e.currentTarget.style.background = over ? ghostColor : "transparent";
+      e.currentTarget.style.color = over ? (dark ? C.ink : C.cream) : ghostColor;
     }
   };
   const props = {
@@ -173,11 +159,16 @@ function CtaButton({ children, href, onClick, ghost = false, small = false }) {
   );
 }
 
-// ── Nav sticky ──────────────────────────────────────────────
+// ── Nav sticky + barra de progreso de scroll ────────────────
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 40);
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(h > 0 ? Math.min(1, window.scrollY / h) : 0);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -204,33 +195,37 @@ function Nav() {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: scrolled ? "14px 28px" : "22px 28px",
-        background: scrolled ? "rgba(249,245,236,.88)" : "transparent",
+        padding: scrolled ? "12px 28px" : "20px 28px",
+        background: scrolled ? "rgba(241,235,221,.9)" : "transparent",
         backdropFilter: scrolled ? "blur(10px)" : "none",
-        borderBottom: scrolled ? `1px solid ${C.line}` : "1px solid transparent",
+        borderBottom: scrolled ? `1px solid ${C.sand}` : "1px solid transparent",
         transition: "all .35s ease",
       }}
     >
-      <a
-        href="#top"
+      <div
         style={{
-          fontFamily: SERIF,
-          fontSize: 18,
-          letterSpacing: 3,
-          color: C.ink,
-          textDecoration: "none",
-          fontWeight: 500,
+          position: "absolute",
+          top: 0,
+          left: 0,
+          height: 3,
+          width: `${progress * 100}%`,
+          background: C.olive,
+          transition: "width .1s linear",
         }}
-      >
-        THE PROJECT
+      />
+      <a href="#top" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+        <TpMark size={34} />
+        <span style={{ fontFamily: DISPLAY, fontSize: 17, letterSpacing: 2.5, color: C.ink }}>
+          THE PROJECT
+        </span>
       </a>
-      <div className="tp-nav-links" style={{ display: "flex", gap: 26, alignItems: "center" }}>
+      <div className="tp-nav-links" style={{ display: "flex", gap: 24, alignItems: "center" }}>
         {[
           ["Qué es", "#que-es"],
-          ["Cómo ayuda", "#como-ayuda"],
-          ["Testimonios", "#testimonios"],
-          ["Planes", "#planes"],
-          ["Contacto", "#contacto"],
+          ["La app", "#la-app"],
+          ["Tu mes", "#tu-mes"],
+          ["Reto AWAKE", "#awake"],
+          ["Membresía", "#membresia"],
         ].map(([label, href]) => (
           <a
             key={href}
@@ -243,20 +238,307 @@ function Nav() {
           </a>
         ))}
       </div>
-      <CtaButton href="/space" small>
-        Crear mi espacio
-      </CtaButton>
+      <Cta href={APP_URL} small>
+        Empezar gratis
+      </Cta>
     </nav>
   );
 }
 
-// ── Mini-mocks de la app para las tarjetas en arco ──────────
+// ── Hero: línea rotativa ────────────────────────────────────
+const HERO_LINES = [
+  "¿pero es la vida que tú quieres?",
+  "¿o solo vas en autopilot?",
+  "y aun así sientes que algo falta.",
+  "wait… ¿y tú cuándo?",
+];
+
+function RotatingLine() {
+  const [i, setI] = useState(0);
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setI((x) => (x + 1) % HERO_LINES.length);
+        setVisible(true);
+      }, 380);
+    }, 3400);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <em
+      style={{
+        display: "block",
+        fontFamily: ACCENT,
+        fontStyle: "italic",
+        fontWeight: 500,
+        color: C.olive,
+        opacity: visible ? 1 : 0,
+        transform: visible ? "none" : "translateY(10px)",
+        transition: "opacity .38s ease, transform .38s ease",
+      }}
+    >
+      {HERO_LINES[i]}
+    </em>
+  );
+}
+
+// ── Cinta marquee Find · Elevate · Rise ─────────────────────
+function Ribbon({ items, dark = true }) {
+  const seq = [...items, ...items, ...items, ...items];
+  return (
+    <div
+      style={{
+        background: dark ? C.ink : "transparent",
+        borderTop: dark ? "none" : `1px solid ${C.sand}`,
+        borderBottom: dark ? "none" : `1px solid ${C.sand}`,
+        overflow: "hidden",
+        padding: "16px 0",
+      }}
+    >
+      <div style={{ display: "flex", gap: 0, width: "max-content", animation: "tp-marquee 28s linear infinite" }}>
+        {seq.map((w, i) => (
+          <span
+            key={i}
+            style={{
+              fontFamily: DISPLAY,
+              fontSize: 17,
+              letterSpacing: 4,
+              textTransform: "uppercase",
+              color: dark ? C.ivory : C.ink,
+              padding: "0 26px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {w} <span style={{ color: dark ? C.soft : C.olive, marginLeft: 46 }}>✦</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Quiz interactivo: ¿te suena? ────────────────────────────
+const QUIZ = [
+  "Das mucho y sientes que no te ven.",
+  "Llevas meses (o años) sintiéndote stuck.",
+  "Quieres más, pero no sabes ni qué.",
+  "El networking te drena más de lo que te da.",
+  "Te va bien en papel… y aun así algo falta.",
+];
+
+function Quiz() {
+  const [sel, setSel] = useState([]);
+  const toggle = (i) =>
+    setSel((s) => (s.includes(i) ? s.filter((x) => x !== i) : [...s, i]));
+  const hit = sel.length >= 2;
+  return (
+    <div style={{ maxWidth: 660, margin: "0 auto" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {QUIZ.map((q, i) => {
+          const on = sel.includes(i);
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => toggle(i)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                textAlign: "left",
+                fontFamily: BODY,
+                fontSize: 15.5,
+                fontWeight: on ? 600 : 400,
+                color: C.ink,
+                background: on ? C.cream : "rgba(251,247,238,.5)",
+                border: `1.5px solid ${on ? C.olive : C.sand}`,
+                borderRadius: 16,
+                padding: "17px 20px",
+                cursor: "pointer",
+                transform: on ? "scale(1.015)" : "none",
+                boxShadow: on ? "0 10px 26px rgba(51,55,44,.1)" : "none",
+                transition: "all .25s ease",
+              }}
+            >
+              <span
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                  flexShrink: 0,
+                  border: `1.5px solid ${on ? C.olive : C.taupe}`,
+                  background: on ? C.olive : "transparent",
+                  color: C.cream,
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 13,
+                  transition: "all .25s ease",
+                }}
+              >
+                {on ? "✦" : ""}
+              </span>
+              {q}
+            </button>
+          );
+        })}
+      </div>
+      <div
+        style={{
+          textAlign: "center",
+          marginTop: 28,
+          maxHeight: hit ? 220 : 0,
+          opacity: hit ? 1 : 0,
+          overflow: "hidden",
+          transition: "all .5s cubic-bezier(.22,1,.36,1)",
+        }}
+      >
+        <p style={{ fontFamily: ACCENT, fontStyle: "italic", fontSize: 23, color: C.olive, margin: "6px 0 18px" }}>
+          Marcaste {sel.length} de 5. No estás sola — y no, no te falta capacidad.
+        </p>
+        <Cta href="#que-es">Entonces esto es para ti ↓</Cta>
+      </div>
+      {!hit && (
+        <p style={{ textAlign: "center", fontFamily: BODY, fontSize: 12.5, color: C.taupe, marginTop: 22 }}>
+          Toca las que te suenen. Sé honesta.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Ecosistema: tarjetas expandibles ────────────────────────
+const ECOSYSTEM = [
+  {
+    k: "app",
+    n: "01",
+    title: "La app · tu espacio diario",
+    short: "Check-in, journaling y pendientes en un solo lugar.",
+    long: "Tu ritual de todos los días: check-ins de mañana, tarde y noche, journaling guiado, pendientes de trabajo y vida separados, y tu progreso del mes. Empiezas gratis, hoy.",
+    cta: { label: "Abrir mi espacio →", href: APP_URL },
+  },
+  {
+    k: "mentoring",
+    n: "02",
+    title: "Mentoring con método",
+    short: "De “no sé qué quiero” a un plan real.",
+    long: "Masterclass de mindset, la sesión “¿Qué quiero?” para escuchar debajo del ruido, y tu Project Review con Fer para aterrizarlo en un plan accionable. Sin filtros, sin pose de gurú.",
+    cta: { label: "Conocer la membresía →", href: "#membresia" },
+  },
+  {
+    k: "awake",
+    n: "03",
+    title: "Reto AWAKE · 21 días",
+    short: "Tres semanas para despertar, con acompañamiento.",
+    long: "Un prompt diario durante 21 días: mirar hacia adentro, encontrar claridad y dar el primer paso. En grupo, con Fer guiando cada día. #Awake21",
+    cta: { label: "Ver el reto →", href: "#awake" },
+  },
+  {
+    k: "red",
+    n: "04",
+    title: "Networking consciente",
+    short: "Una red de mujeres que van por lo mismo.",
+    long: "No venimos a competir ni a intercambiar tarjetas. Venimos a abrirnos camino juntas: encuentros mensuales, conexiones reales y una comunidad que te sostiene cuando dudas.",
+    cta: { label: "Unirme →", href: "#membresia" },
+  },
+];
+
+function EcosystemCards() {
+  const [open, setOpen] = useState("app");
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+        gap: 18,
+        maxWidth: 1040,
+        margin: "0 auto",
+      }}
+    >
+      {ECOSYSTEM.map((e) => {
+        const on = open === e.k;
+        return (
+          <button
+            key={e.k}
+            type="button"
+            onClick={() => setOpen(e.k)}
+            style={{
+              textAlign: "left",
+              background: on ? C.ivory : "rgba(241,235,221,.08)",
+              color: on ? C.ink : C.ivory,
+              border: `1.5px solid ${on ? C.ivory : "rgba(241,235,221,.3)"}`,
+              borderRadius: 22,
+              padding: "26px 24px",
+              cursor: "pointer",
+              transition: "all .4s cubic-bezier(.22,1,.36,1)",
+              transform: on ? "translateY(-6px)" : "none",
+              boxShadow: on ? "0 24px 50px rgba(0,0,0,.3)" : "none",
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 210,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: DISPLAY,
+                fontSize: 26,
+                color: on ? C.olive : C.soft,
+                marginBottom: 10,
+              }}
+            >
+              {e.n}
+            </div>
+            <div style={{ fontFamily: DISPLAY, fontSize: 19, lineHeight: 1.25, marginBottom: 8 }}>{e.title}</div>
+            <p
+              style={{
+                fontFamily: BODY,
+                fontSize: 13.5,
+                lineHeight: 1.65,
+                opacity: 0.85,
+                margin: 0,
+                flex: 1,
+              }}
+            >
+              {on ? e.long : e.short}
+            </p>
+            <div
+              style={{
+                marginTop: 14,
+                maxHeight: on ? 50 : 0,
+                opacity: on ? 1 : 0,
+                overflow: "hidden",
+                transition: "all .4s ease",
+              }}
+            >
+              {e.cta.href.startsWith("/") ? (
+                <Link
+                  href={e.cta.href}
+                  style={{ fontFamily: BODY, fontSize: 13.5, fontWeight: 600, color: C.olive, textDecoration: "none" }}
+                >
+                  {e.cta.label}
+                </Link>
+              ) : (
+                <a
+                  href={e.cta.href}
+                  style={{ fontFamily: BODY, fontSize: 13.5, fontWeight: 600, color: C.olive, textDecoration: "none" }}
+                >
+                  {e.cta.label}
+                </a>
+              )}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Mini-mocks de la app (tarjetas en arco) ─────────────────
 function MockCheckin() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
-      <div style={{ fontFamily: SERIF, fontSize: 13, fontStyle: "italic", color: C.ink }}>
-        ¿Cómo amaneces hoy?
-      </div>
+      <div style={{ fontFamily: ACCENT, fontStyle: "italic", fontSize: 14, color: C.ink }}>¿Cómo amaneces hoy?</div>
       <div style={{ display: "flex", gap: 8 }}>
         {["😌", "🙂", "😐", "😮‍💨", "🥲"].map((e, i) => (
           <div
@@ -266,7 +548,7 @@ function MockCheckin() {
               height: 30,
               borderRadius: "50%",
               background: i === 1 ? C.soft : "#fff",
-              border: `1px solid ${C.line}`,
+              border: `1px solid ${C.sand}`,
               display: "grid",
               placeItems: "center",
               fontSize: 14,
@@ -276,9 +558,7 @@ function MockCheckin() {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.muted }}>
-        Check-in diario
-      </div>
+      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.taupe }}>Check-in diario</div>
     </div>
   );
 }
@@ -298,8 +578,8 @@ function MockTodos() {
               width: 14,
               height: 14,
               borderRadius: 4,
-              border: `1.5px solid ${done ? C.accent : C.line}`,
-              background: done ? C.accent : "transparent",
+              border: `1.5px solid ${done ? C.olive : C.sand}`,
+              background: done ? C.olive : "transparent",
               display: "grid",
               placeItems: "center",
               color: "#fff",
@@ -320,7 +600,7 @@ function MockTodos() {
           </div>
         </div>
       ))}
-      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.muted, marginTop: 4 }}>
+      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.taupe, marginTop: 4 }}>
         Trabajo + vida, separados
       </div>
     </div>
@@ -330,15 +610,15 @@ function MockTodos() {
 function MockJournal() {
   return (
     <div style={{ width: "100%" }}>
-      <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12.5, color: C.ink, lineHeight: 1.6 }}>
-        “Hoy me di cuenta de que no tengo que poder con todo a la vez…”
+      <div style={{ fontFamily: ACCENT, fontStyle: "italic", fontSize: 13.5, color: C.ink, lineHeight: 1.6 }}>
+        “En realidad, lo que quiero es…”
       </div>
       <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
         {[90, 75, 60].map((w, i) => (
-          <div key={i} style={{ height: 4, width: `${w}%`, borderRadius: 4, background: C.line }} />
+          <div key={i} style={{ height: 4, width: `${w}%`, borderRadius: 4, background: C.sand }} />
         ))}
       </div>
-      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.muted, marginTop: 10 }}>
+      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.taupe, marginTop: 10 }}>
         Journaling guiado
       </div>
     </div>
@@ -357,13 +637,13 @@ function MockProgress() {
               width: 13,
               height: `${h}%`,
               borderRadius: 6,
-              background: i === 3 ? C.accent : C.soft,
+              background: i === 3 ? C.olive : C.soft,
               opacity: i === 3 ? 1 : 0.7,
             }}
           />
         ))}
       </div>
-      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.muted }}>
+      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.taupe }}>
         Mi progreso del mes
       </div>
     </div>
@@ -378,7 +658,7 @@ function MockAI() {
           alignSelf: "flex-start",
           maxWidth: "92%",
           background: "#fff",
-          border: `1px solid ${C.line}`,
+          border: `1px solid ${C.sand}`,
           borderRadius: "14px 14px 14px 4px",
           padding: "8px 11px",
           fontSize: 11,
@@ -386,10 +666,10 @@ function MockAI() {
           lineHeight: 1.5,
         }}
       >
-        Hoy traes mucha carga. Te propongo elegir solo una prioridad y proteger tu pausa de la tarde. 🤍
+        Hoy traes mucha carga. Elige UNA prioridad y protege tu pausa de la tarde. 🤍
       </div>
-      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.muted }}>
-        IA que te acompaña
+      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.taupe }}>
+        IA que te acompaña · add-on
       </div>
     </div>
   );
@@ -414,7 +694,7 @@ function MockPalettes() {
           />
         ))}
       </div>
-      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.muted }}>
+      <div style={{ fontSize: 9, letterSpacing: 1.4, textTransform: "uppercase", color: C.taupe }}>
         Tu espacio, tu paleta
       </div>
     </div>
@@ -441,8 +721,8 @@ function ArchCard({ children }) {
         width: 230,
         height: 310,
         borderRadius: "150px 150px 22px 22px",
-        background: `linear-gradient(180deg, ${C.card} 0%, #F3EDDE 100%)`,
-        border: `1px solid ${C.line}`,
+        background: `linear-gradient(180deg, ${C.cream} 0%, ${C.nude} 100%)`,
+        border: `1px solid ${C.sand}`,
         boxShadow: hover ? "0 22px 44px rgba(51,55,44,.16)" : "0 10px 26px rgba(51,55,44,.07)",
         transform: hover ? "translateY(-10px)" : "none",
         transition: "transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s ease",
@@ -459,7 +739,7 @@ function ArchCard({ children }) {
           position: "absolute",
           inset: 8,
           borderRadius: "144px 144px 16px 16px",
-          border: `1px solid ${C.gold}44`,
+          border: `1px solid ${C.soft}66`,
           pointerEvents: "none",
         }}
       />
@@ -468,13 +748,12 @@ function ArchCard({ children }) {
   );
 }
 
-// ── Carrusel infinito (marquee) de tarjetas en arco ─────────
 function ArchMarquee() {
   const [paused, setPaused] = useState(false);
   const cards = [...ARCH_CARDS, ...ARCH_CARDS];
   return (
     <div
-      style={{ overflow: "hidden", padding: "30px 0 40px", position: "relative" }}
+      style={{ overflow: "hidden", padding: "30px 0 36px", position: "relative" }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -491,7 +770,6 @@ function ArchMarquee() {
           <ArchCard key={`${c.key}-${i}`}>{c.node}</ArchCard>
         ))}
       </div>
-      {/* degradados en los bordes */}
       {["left", "right"].map((side) => (
         <div
           key={side}
@@ -501,7 +779,7 @@ function ArchMarquee() {
             bottom: 0,
             [side]: 0,
             width: 90,
-            background: `linear-gradient(to ${side === "left" ? "right" : "left"}, ${C.bg}, transparent)`,
+            background: `linear-gradient(to ${side === "left" ? "right" : "left"}, ${C.ivory}, transparent)`,
             pointerEvents: "none",
           }}
         />
@@ -510,140 +788,321 @@ function ArchMarquee() {
   );
 }
 
-// ── Iconos de línea (fila "cómo ayudamos") ──────────────────
-function IconDay() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke={C.ink} strokeWidth="1.4">
-      <circle cx="22" cy="22" r="8" />
-      {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
-        <line
-          key={a}
-          x1={22 + 12 * Math.cos((a * Math.PI) / 180)}
-          y1={22 + 12 * Math.sin((a * Math.PI) / 180)}
-          x2={22 + 16 * Math.cos((a * Math.PI) / 180)}
-          y2={22 + 16 * Math.sin((a * Math.PI) / 180)}
-        />
-      ))}
-    </svg>
-  );
-}
-function IconSpace() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke={C.ink} strokeWidth="1.4">
-      <rect x="7" y="7" width="13" height="18" rx="3" />
-      <rect x="24" y="7" width="13" height="10" rx="3" />
-      <rect x="24" y="21" width="13" height="16" rx="3" />
-      <rect x="7" y="29" width="13" height="8" rx="3" />
-    </svg>
-  );
-}
-function IconHeartHand() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke={C.ink} strokeWidth="1.4">
-      <path d="M22 30 C 22 30, 12 23.5, 12 17.5 C 12 14.4, 14.4 12.5, 16.9 12.5 C 18.8 12.5, 20.9 13.6, 22 15.3 C 23.1 13.6, 25.2 12.5, 27.1 12.5 C 29.6 12.5, 32 14.4, 32 17.5 C 32 23.5, 22 30, 22 30 Z" />
-      <path d="M10 36 C 16 40, 28 40, 34 36" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-// ── Tabs interactivos: un día con The Project ───────────────
-const DAY_TABS = [
+// ── Un mes adentro ──────────────────────────────────────────
+const MONTH = [
   {
-    key: "Mañana",
-    emoji: "☀️",
-    title: "Empiezas con intención",
-    text: "Un check-in de dos minutos: cómo amaneces, qué es lo más importante hoy y qué necesitas para ti. Tu espacio se acomoda alrededor de eso — no al revés.",
-    grad: "linear-gradient(135deg, #F6EED9, #F1E4C8)",
+    week: "Semana 1",
+    title: "Masterclass con invitada especial",
+    text: "Un hack corporativo real + Q&A íntimo. Mentes que ya recorrieron el camino, sin filtros.",
   },
   {
-    key: "Tarde",
-    emoji: "🌤",
-    title: "Todo en su lugar",
-    text: "Pendientes de trabajo y de vida en columnas separadas, tu journal a un clic y tips que responden a cómo te sientes. Nada de saltar entre cinco apps.",
-    grad: "linear-gradient(135deg, #F3EBDA, #E8E9DA)",
+    week: "Semana 2",
+    title: "Wellness check-in",
+    text: "Meditación guiada + journaling en grupo. Bajarle al ruido para escucharte.",
   },
   {
-    key: "Noche",
-    emoji: "🌙",
-    title: "Cierras y sueltas",
-    text: "El check-in nocturno te ayuda a soltar el día: qué lograste, qué dejas para mañana y cómo te vas a dormir. Tu mente descansa cuando sabe que nada se olvida.",
-    grad: "linear-gradient(135deg, #EAE6DC, #E0DCD4)",
+    week: "Semana 3",
+    title: "Tu Project Review con Fer",
+    text: "Sesión de crecimiento y propósito: aterrizar tu “qué quiero” en el siguiente paso.",
+  },
+  {
+    week: "Semana 4",
+    title: "Networking consciente",
+    text: "Conexiones reales, moderadas por Fer. No venimos a competir — venimos juntas.",
   },
 ];
 
-function DayTabs() {
+function MonthTimeline() {
   const [active, setActive] = useState(0);
-  const tab = DAY_TABS[active];
   return (
-    <div style={{ maxWidth: 860, margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 34, flexWrap: "wrap" }}>
-        {DAY_TABS.map((t, i) => (
+    <div style={{ maxWidth: 880, margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 0, marginBottom: 36, position: "relative" }}>
+        <div
+          style={{
+            position: "absolute",
+            top: 21,
+            left: "12%",
+            right: "12%",
+            height: 1.5,
+            background: C.greige,
+          }}
+        />
+        {MONTH.map((m, i) => (
           <button
-            key={t.key}
+            key={i}
             type="button"
             onClick={() => setActive(i)}
             style={{
-              fontFamily: BODY,
-              fontSize: 13,
-              fontWeight: 600,
-              letterSpacing: 1,
-              textTransform: "uppercase",
-              padding: "11px 26px",
-              borderRadius: 999,
+              flex: 1,
+              background: "none",
+              border: "none",
               cursor: "pointer",
-              border: `1.5px solid ${i === active ? C.accent : C.line}`,
-              background: i === active ? C.accent : "transparent",
-              color: i === active ? "#FDFBF5" : C.ink,
-              transition: "all .3s ease",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 10,
+              position: "relative",
             }}
           >
-            {t.emoji} {t.key}
+            <span
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: "50%",
+                border: `1.5px solid ${i === active ? C.olive : C.greige}`,
+                background: i === active ? C.olive : C.ivory,
+                color: i === active ? C.cream : C.taupe,
+                display: "grid",
+                placeItems: "center",
+                fontFamily: DISPLAY,
+                fontSize: 16,
+                transition: "all .3s ease",
+                transform: i === active ? "scale(1.15)" : "none",
+              }}
+            >
+              {i + 1}
+            </span>
+            <span
+              style={{
+                fontFamily: BODY,
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: 1.2,
+                textTransform: "uppercase",
+                color: i === active ? C.ink : C.taupe,
+              }}
+            >
+              {m.week}
+            </span>
           </button>
         ))}
       </div>
       <div
-        key={tab.key}
+        key={active}
         style={{
-          background: tab.grad,
-          border: `1px solid ${C.line}`,
-          borderRadius: 28,
-          padding: "48px 40px",
+          background: C.cream,
+          border: `1px solid ${C.sand}`,
+          borderRadius: 24,
+          padding: "40px 38px",
           textAlign: "center",
-          animation: "tp-fade-up .5s ease both",
+          animation: "tp-fade-up .45s ease both",
         }}
       >
-        <div style={{ fontFamily: SERIF, fontSize: 28, color: C.ink, marginBottom: 14 }}>{tab.title}</div>
-        <p style={{ fontFamily: BODY, fontSize: 16, lineHeight: 1.75, color: C.ink, opacity: 0.8, maxWidth: 560, margin: "0 auto" }}>
-          {tab.text}
+        <div style={{ fontFamily: DISPLAY, fontSize: 25, color: C.ink, marginBottom: 12 }}>{MONTH[active].title}</div>
+        <p style={{ fontFamily: BODY, fontSize: 15.5, lineHeight: 1.75, color: C.ink, opacity: 0.78, maxWidth: 520, margin: "0 auto" }}>
+          {MONTH[active].text}
         </p>
       </div>
     </div>
   );
 }
 
-// ── Testimonios (carrusel con flechas + dots + autoplay) ────
+// ── Reto AWAKE: 21 puntos + 3 fases ─────────────────────────
+const AWAKE_PHASES = [
+  {
+    days: "Días 1–7",
+    title: "Mirar hacia adentro",
+    text: "Conocerte de verdad, sin filtros: tu martes ideal, tus momentos de flow, tus no-negociables, la niña que fuiste.",
+  },
+  {
+    days: "Días 8–14",
+    title: "Encontrar claridad",
+    text: "Aprender a pensar distinto: la duda como brújula, silencio estratégico, menos decisiones que drenan, tu carta al futuro.",
+  },
+  {
+    days: "Días 15–21",
+    title: "Dar el primer paso",
+    text: "De la reflexión a la acción: el paso más pequeño, tu meta clara, tu red de apoyo y tu compromiso.",
+  },
+];
+
+function AwakeChallenge() {
+  const [phase, setPhase] = useState(0);
+  return (
+    <div style={{ maxWidth: 760, margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 9, flexWrap: "wrap", marginBottom: 36 }}>
+        {Array.from({ length: 21 }, (_, i) => {
+          const p = i < 7 ? 0 : i < 14 ? 1 : 2;
+          const on = p === phase;
+          return (
+            <button
+              key={i}
+              type="button"
+              aria-label={`Día ${i + 1}`}
+              onClick={() => setPhase(p)}
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: "50%",
+                border: `1.5px solid ${on ? C.soft : "rgba(241,235,221,.3)"}`,
+                background: on ? C.soft : "transparent",
+                color: on ? C.ink : "rgba(241,235,221,.55)",
+                fontFamily: BODY,
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "grid",
+                placeItems: "center",
+                transition: `all .3s ease ${(i % 7) * 30}ms`,
+                transform: on ? "scale(1.1)" : "none",
+              }}
+            >
+              {i + 1}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 30, flexWrap: "wrap" }}>
+        {AWAKE_PHASES.map((f, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setPhase(i)}
+            style={{
+              fontFamily: BODY,
+              fontSize: 12.5,
+              fontWeight: 600,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              padding: "10px 22px",
+              borderRadius: 999,
+              cursor: "pointer",
+              border: `1.5px solid ${i === phase ? C.soft : "rgba(241,235,221,.35)"}`,
+              background: i === phase ? C.soft : "transparent",
+              color: i === phase ? C.ink : C.ivory,
+              transition: "all .3s ease",
+            }}
+          >
+            {f.days}
+          </button>
+        ))}
+      </div>
+      <div key={phase} style={{ textAlign: "center", animation: "tp-fade-up .45s ease both" }}>
+        <div style={{ fontFamily: DISPLAY, fontSize: 27, color: C.ivory, marginBottom: 12 }}>
+          {AWAKE_PHASES[phase].title}
+        </div>
+        <p
+          style={{
+            fontFamily: BODY,
+            fontSize: 15.5,
+            lineHeight: 1.75,
+            color: C.ivory,
+            opacity: 0.82,
+            maxWidth: 540,
+            margin: "0 auto",
+          }}
+        >
+          {AWAKE_PHASES[phase].text}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Formas de pensar (mindset, con respaldo) ────────────────
+const MINDSET = [
+  {
+    quote: "Los más originales no son los que no dudan. Son los que actúan a pesar de la duda.",
+    src: "Adam Grant · Wharton",
+  },
+  {
+    quote: "La mente resuelve en reposo lo que no puede resolver bajo presión.",
+    src: "Neurociencia · default mode network",
+  },
+  {
+    quote: "Demasiada elección no nos hace más libres. Nos paraliza.",
+    src: "Sheena Iyengar · Columbia",
+  },
+  {
+    quote: "Los grandes sueños abruman. Un martes normal es concreto.",
+    src: "Diseño de vida · Stanford",
+  },
+  {
+    quote: "Un yo vive la experiencia y otro la recuerda. Deciden distinto.",
+    src: "Daniel Kahneman · Premio Nobel",
+  },
+];
+
+function MindsetCarousel() {
+  const [i, setI] = useState(0);
+  const timer = useRef(null);
+  const go = useCallback((d) => setI((x) => (x + d + MINDSET.length) % MINDSET.length), []);
+  useEffect(() => {
+    timer.current = setInterval(() => go(1), 5200);
+    return () => clearInterval(timer.current);
+  }, [go]);
+  const manual = (fn) => {
+    clearInterval(timer.current);
+    fn();
+    timer.current = setInterval(() => go(1), 5200);
+  };
+  return (
+    <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
+      <div key={i} style={{ animation: "tp-fade-up .5s ease both", minHeight: 150 }}>
+        <p
+          style={{
+            fontFamily: ACCENT,
+            fontStyle: "italic",
+            fontWeight: 500,
+            fontSize: "clamp(21px, 3vw, 27px)",
+            lineHeight: 1.55,
+            color: C.ink,
+            margin: "0 0 16px",
+          }}
+        >
+          “{MINDSET[i].quote}”
+        </p>
+        <div style={{ fontFamily: BODY, fontSize: 12, fontWeight: 600, letterSpacing: 1.8, textTransform: "uppercase", color: C.olive }}>
+          {MINDSET[i].src}
+        </div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 24 }}>
+        {MINDSET.map((_, x) => (
+          <button
+            key={x}
+            type="button"
+            aria-label={`Forma ${x + 1}`}
+            onClick={() => manual(() => setI(x))}
+            style={{
+              width: x === i ? 22 : 7,
+              height: 7,
+              borderRadius: 99,
+              border: "none",
+              background: x === i ? C.olive : C.greige,
+              cursor: "pointer",
+              transition: "all .35s ease",
+              padding: 0,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Testimonios ─────────────────────────────────────────────
 const TESTIMONIALS = [
   {
     quote:
-      "Antes terminaba el día con la cabeza llena y la agenda vacía. Ahora cierro mi laptop, hago mi check-in de noche y de verdad desconecto.",
+      "Llegué pensando que necesitaba otro curso. Lo que encontré fue claridad: en un mes pasé de “no sé qué quiero” a tener un plan que sí es mío.",
     name: "Mariana G.",
     role: "Gerente de marketing · CDMX",
   },
   {
     quote:
-      "Lo que más me gusta es que no es otra app de productividad. Me pregunta cómo estoy antes de preguntarme qué voy a hacer.",
+      "El reto de 21 días me despertó. Y la comunidad… es otra cosa: mujeres que te empujan sin competirte.",
     name: "Caro V.",
     role: "Consultora · Bogotá",
   },
   {
     quote:
-      "El journaling guiado me salvó en un trimestre horrible. Diez minutos al día y siento que vuelvo a tener claridad.",
+      "La app se volvió mi ritual de las mañanas. Me pregunta cómo estoy antes de preguntarme qué voy a hacer — eso lo cambia todo.",
     name: "Fernanda R.",
     role: "Product manager · Monterrey",
   },
   {
     quote:
-      "Es el único espacio donde mi trabajo y mi vida no compiten. Y la estética… me dan ganas de abrirlo todos los días.",
+      "El Project Review con Fer fue la primera vez que alguien me ayudó a aterrizar lo que quiero en pasos reales. Sin humo.",
     name: "Lucía P.",
     role: "Finanzas · Santiago",
   },
@@ -669,8 +1128,8 @@ function Testimonials() {
     width: 44,
     height: 44,
     borderRadius: "50%",
-    border: `1.5px solid ${C.line}`,
-    background: C.card,
+    border: `1.5px solid ${C.sand}`,
+    background: C.cream,
     color: C.ink,
     fontSize: 18,
     cursor: "pointer",
@@ -687,21 +1146,22 @@ function Testimonials() {
         style={arrow}
         onClick={() => manual(() => go(-1))}
         onMouseEnter={(e) => (e.currentTarget.style.background = C.ink) && (e.currentTarget.style.color = "#fff")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = C.card) && (e.currentTarget.style.color = C.ink)}
+        onMouseLeave={(e) => (e.currentTarget.style.background = C.cream) && (e.currentTarget.style.color = C.ink)}
       >
         ←
       </button>
-      <div style={{ flex: 1, textAlign: "center", minHeight: 220 }}>
+      <div style={{ flex: 1, textAlign: "center", minHeight: 210 }}>
         <div key={index} style={{ animation: "tp-fade-up .55s ease both" }}>
-          <div style={{ fontSize: 30, color: C.gold, fontFamily: SERIF, lineHeight: 1 }}>“</div>
+          <div style={{ fontSize: 30, color: C.soft, fontFamily: DISPLAY, lineHeight: 1 }}>“</div>
           <p
             style={{
-              fontFamily: SERIF,
+              fontFamily: ACCENT,
               fontStyle: "italic",
+              fontWeight: 500,
               fontSize: 21,
-              lineHeight: 1.65,
-              color: C.accent,
-              margin: "6px 0 22px",
+              lineHeight: 1.6,
+              color: C.olive,
+              margin: "6px 0 20px",
             }}
           >
             {t.quote}
@@ -709,9 +1169,9 @@ function Testimonials() {
           <div style={{ fontFamily: BODY, fontSize: 13, fontWeight: 600, letterSpacing: 1.6, textTransform: "uppercase", color: C.ink }}>
             — {t.name}
           </div>
-          <div style={{ fontFamily: BODY, fontSize: 12.5, color: C.muted, marginTop: 5 }}>{t.role}</div>
+          <div style={{ fontFamily: BODY, fontSize: 12.5, color: C.taupe, marginTop: 5 }}>{t.role}</div>
         </div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 26 }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 24 }}>
           {TESTIMONIALS.map((_, i) => (
             <button
               key={i}
@@ -723,7 +1183,7 @@ function Testimonials() {
                 height: 7,
                 borderRadius: 99,
                 border: "none",
-                background: i === index ? C.accent : C.line,
+                background: i === index ? C.olive : C.sand,
                 cursor: "pointer",
                 transition: "all .35s ease",
                 padding: 0,
@@ -738,7 +1198,7 @@ function Testimonials() {
         style={arrow}
         onClick={() => manual(() => go(1))}
         onMouseEnter={(e) => (e.currentTarget.style.background = C.ink) && (e.currentTarget.style.color = "#fff")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = C.card) && (e.currentTarget.style.color = C.ink)}
+        onMouseLeave={(e) => (e.currentTarget.style.background = C.cream) && (e.currentTarget.style.color = C.ink)}
       >
         →
       </button>
@@ -746,114 +1206,159 @@ function Testimonials() {
   );
 }
 
-// ── Planes ──────────────────────────────────────────────────
+// ── Membresía / planes ──────────────────────────────────────
 function Plans() {
   const plans = [
     {
-      name: "Gratis",
+      name: "La app · gratis",
       price: "$0",
       period: "para siempre",
       featured: false,
+      tag: null,
       items: [
         "Check-in diario (mañana / tarde / noche)",
-        "Pendientes: trabajo y vida, separados",
         "Journaling guiado",
-        "Mi progreso: métricas del mes",
-        "Tips según tu reto del momento",
-        "10 paletas para hacer tuyo el espacio",
+        "Pendientes: trabajo y vida, separados",
+        "Mi progreso del mes",
+        "10 paletas para hacerla tuya",
       ],
-      cta: "Crear mi espacio gratis",
+      cta: { label: "Empezar gratis hoy", href: APP_URL },
+      note: "Tu puerta de entrada. Sin tarjeta.",
     },
     {
-      name: "Premium",
-      price: "$10",
-      period: "USD / mes",
+      name: "Membresía The Project",
+      price: "$349",
+      period: "MXN / mes",
       featured: true,
+      tag: "Precio fundadoras · solo las primeras",
       items: [
-        "Todo lo del plan gratis",
+        "Masterclass de mindset con invitadas",
+        "Sesión “¿Qué quiero?” guiada",
+        "Tu Project Review con Fer",
+        "Networking consciente mensual",
+        "Reto AWAKE de 21 días acompañado",
+        "Comunidad privada de mujeres",
+        "La app completa, incluida",
+      ],
+      cta: { label: "Apartar mi lugar ✦", href: "#contacto" },
+      note: "Menos de $90 por sesión en vivo.",
+    },
+    {
+      name: "Add-on · IA en tu espacio",
+      price: "+$10",
+      period: "USD / mes",
+      featured: false,
+      tag: null,
+      items: [
         "Guía diaria personalizada con IA",
         "Análisis de tu journaling",
-        "Recomendaciones según tu energía",
-        "Acompañamiento que aprende de ti",
+        "Sugerencias según tu energía",
+        "Recomendaciones que aprenden de ti",
       ],
-      cta: "Probar Premium",
+      cta: { label: "Activarlo en la app", href: APP_URL },
+      note: "Opcional, sobre la app o la membresía.",
     },
   ];
   return (
-    <div style={{ display: "flex", gap: 26, justifyContent: "center", flexWrap: "wrap" }}>
+    <div style={{ display: "flex", gap: 22, justifyContent: "center", flexWrap: "wrap", alignItems: "stretch" }}>
       {plans.map((p, idx) => (
-        <Reveal key={p.name} delay={idx * 130} style={{ flex: "1 1 300px", maxWidth: 400 }}>
+        <Reveal key={p.name} delay={idx * 120} style={{ flex: "1 1 280px", maxWidth: 380, display: "flex" }}>
           <div
             style={{
-              background: p.featured ? C.dark : C.card,
-              color: p.featured ? "#F4EFE2" : C.ink,
-              border: `1px solid ${p.featured ? C.dark : C.line}`,
+              background: p.featured ? C.ink : C.cream,
+              color: p.featured ? C.ivory : C.ink,
+              border: `1px solid ${p.featured ? C.ink : C.sand}`,
               borderRadius: 26,
-              padding: "40px 34px",
-              height: "100%",
+              padding: "38px 32px",
+              width: "100%",
               display: "flex",
               flexDirection: "column",
-              boxShadow: p.featured ? "0 24px 50px rgba(51,55,44,.25)" : "0 12px 30px rgba(51,55,44,.06)",
+              boxShadow: p.featured ? "0 26px 54px rgba(51,55,44,.3)" : "0 12px 30px rgba(51,55,44,.06)",
               position: "relative",
               transition: "transform .35s cubic-bezier(.22,1,.36,1)",
             }}
             onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-8px)")}
             onMouseLeave={(e) => (e.currentTarget.style.transform = "none")}
           >
-            {p.featured && (
+            {p.tag && (
               <div
                 style={{
                   position: "absolute",
                   top: -13,
-                  right: 28,
-                  background: C.gold,
-                  color: "#FFF9EE",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  whiteSpace: "nowrap",
+                  background: C.soft,
+                  color: C.ink,
                   fontFamily: BODY,
                   fontSize: 10.5,
                   fontWeight: 600,
-                  letterSpacing: 1.6,
+                  letterSpacing: 1.2,
                   textTransform: "uppercase",
-                  padding: "6px 14px",
+                  padding: "6px 16px",
                   borderRadius: 99,
                 }}
               >
-                Con IA
+                {p.tag}
               </div>
             )}
             <div style={{ fontFamily: BODY, fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", opacity: 0.7 }}>
               {p.name}
             </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "12px 0 24px" }}>
-              <span style={{ fontFamily: SERIF, fontSize: 46 }}>{p.price}</span>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "12px 0 22px" }}>
+              <span style={{ fontFamily: DISPLAY, fontSize: 44 }}>{p.price}</span>
               <span style={{ fontFamily: BODY, fontSize: 13, opacity: 0.65 }}>{p.period}</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32, flex: 1 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 11, marginBottom: 26, flex: 1 }}>
               {p.items.map((it) => (
-                <div key={it} style={{ display: "flex", gap: 10, fontFamily: BODY, fontSize: 14, lineHeight: 1.5 }}>
-                  <span style={{ color: p.featured ? C.gold : C.accent }}>✦</span>
-                  <span style={{ opacity: 0.88 }}>{it}</span>
+                <div key={it} style={{ display: "flex", gap: 10, fontFamily: BODY, fontSize: 13.5, lineHeight: 1.5 }}>
+                  <span style={{ color: p.featured ? C.soft : C.olive }}>✦</span>
+                  <span style={{ opacity: 0.9 }}>{it}</span>
                 </div>
               ))}
             </div>
-            <Link
-              href="/space"
-              style={{
-                fontFamily: BODY,
-                fontWeight: 600,
-                fontSize: 14,
-                textAlign: "center",
-                padding: "14px 20px",
-                borderRadius: 999,
-                textDecoration: "none",
-                background: p.featured ? C.gold : C.accent,
-                color: "#FFF9EE",
-                transition: "opacity .2s",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = 0.88)}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = 1)}
-            >
-              {p.cta}
-            </Link>
+            {p.cta.href.startsWith("/") ? (
+              <Link
+                href={p.cta.href}
+                style={{
+                  fontFamily: BODY,
+                  fontWeight: 600,
+                  fontSize: 14,
+                  textAlign: "center",
+                  padding: "14px 20px",
+                  borderRadius: 999,
+                  textDecoration: "none",
+                  background: p.featured ? C.soft : C.olive,
+                  color: p.featured ? C.ink : C.cream,
+                  transition: "opacity .2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = 0.88)}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = 1)}
+              >
+                {p.cta.label}
+              </Link>
+            ) : (
+              <a
+                href={p.cta.href}
+                style={{
+                  fontFamily: BODY,
+                  fontWeight: 600,
+                  fontSize: 14,
+                  textAlign: "center",
+                  padding: "14px 20px",
+                  borderRadius: 999,
+                  textDecoration: "none",
+                  background: p.featured ? C.soft : C.olive,
+                  color: p.featured ? C.ink : C.cream,
+                  transition: "opacity .2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = 0.88)}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = 1)}
+              >
+                {p.cta.label}
+              </a>
+            )}
+            <div style={{ fontFamily: BODY, fontSize: 11.5, opacity: 0.6, textAlign: "center", marginTop: 12 }}>{p.note}</div>
           </div>
         </Reveal>
       ))}
@@ -861,10 +1366,10 @@ function Plans() {
   );
 }
 
-// ── Formulario: pedir info / registrarse ────────────────────
+// ── Formulario: apartar lugar / pedir info ──────────────────
 function LeadForm() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const [status, setStatus] = useState("idle"); // idle | sending | done | error
+  const [status, setStatus] = useState("idle");
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const submit = async (e) => {
@@ -880,7 +1385,6 @@ function LeadForm() {
         });
         if (error) throw error;
       } else if (typeof window !== "undefined") {
-        // Sin Supabase configurado: guarda localmente para no perder el dato.
         const prev = JSON.parse(window.localStorage.getItem("tp:leads") || "[]");
         prev.push({ ...form, at: new Date().toISOString() });
         window.localStorage.setItem("tp:leads", JSON.stringify(prev));
@@ -896,8 +1400,8 @@ function LeadForm() {
     fontSize: 15,
     padding: "15px 18px",
     borderRadius: 14,
-    border: `1.5px solid ${C.line}`,
-    background: "#FDFBF5",
+    border: `1.5px solid ${C.sand}`,
+    background: C.cream,
     color: C.ink,
     outline: "none",
     width: "100%",
@@ -909,34 +1413,34 @@ function LeadForm() {
     fontWeight: 600,
     letterSpacing: 1.4,
     textTransform: "uppercase",
-    color: C.muted,
+    color: C.taupe,
     marginBottom: 7,
     display: "block",
     textAlign: "left",
   };
-  const focus = (e) => (e.target.style.borderColor = C.accent);
-  const blur = (e) => (e.target.style.borderColor = C.line);
+  const focus = (e) => (e.target.style.borderColor = C.olive);
+  const blur = (e) => (e.target.style.borderColor = C.sand);
 
   if (status === "done") {
     return (
       <div
         style={{
-          background: C.card,
-          border: `1px solid ${C.line}`,
+          background: C.cream,
+          border: `1px solid ${C.sand}`,
           borderRadius: 26,
           padding: "56px 40px",
           textAlign: "center",
           animation: "tp-fade-up .5s ease both",
         }}
       >
-        <div style={{ fontSize: 36 }}>🤍</div>
-        <div style={{ fontFamily: SERIF, fontSize: 26, color: C.ink, margin: "14px 0 10px" }}>
-          ¡Gracias, {form.name.split(" ")[0]}!
+        <TpMark size={44} color={C.olive} />
+        <div style={{ fontFamily: DISPLAY, fontSize: 26, color: C.ink, margin: "16px 0 10px" }}>
+          ¡Listo, {form.name.split(" ")[0]}!
         </div>
-        <p style={{ fontFamily: BODY, fontSize: 15, color: C.muted, lineHeight: 1.7, maxWidth: 420, margin: "0 auto 26px" }}>
-          Recibimos tu mensaje. Muy pronto te escribimos con toda la info. Mientras tanto, tu espacio ya te está esperando.
+        <p style={{ fontFamily: BODY, fontSize: 15, color: C.taupe, lineHeight: 1.7, maxWidth: 420, margin: "0 auto 26px" }}>
+          Recibimos tus datos. Fer te escribe muy pronto con todo. Mientras tanto, tu espacio ya te está esperando — empieza gratis hoy.
         </p>
-        <CtaButton href="/space">Crear mi espacio ahora</CtaButton>
+        <Cta href={APP_URL}>Abrir mi espacio ahora</Cta>
       </div>
     );
   }
@@ -945,8 +1449,8 @@ function LeadForm() {
     <form
       onSubmit={submit}
       style={{
-        background: C.card,
-        border: `1px solid ${C.line}`,
+        background: C.cream,
+        border: `1px solid ${C.sand}`,
         borderRadius: 26,
         padding: "40px 36px",
         display: "flex",
@@ -985,8 +1489,8 @@ function LeadForm() {
       <label>
         <span style={labelStyle}>Mensaje (opcional)</span>
         <textarea
-          style={{ ...field, resize: "vertical", minHeight: 110 }}
-          placeholder="Cuéntanos: ¿qué te gustaría saber de The Project?"
+          style={{ ...field, resize: "vertical", minHeight: 100 }}
+          placeholder="Cuéntanos dónde estás: ¿stuck, explorando, lista para empezar?"
           value={form.message}
           onChange={set("message")}
           onFocus={focus}
@@ -996,7 +1500,7 @@ function LeadForm() {
       {status === "error" && (
         <div style={{ fontFamily: BODY, fontSize: 13.5, color: "#A85668" }}>
           Algo falló al enviar. Intenta de nuevo, o escríbenos por Instagram:{" "}
-          <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" style={{ color: C.accent, fontWeight: 600 }}>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" style={{ color: C.olive, fontWeight: 600 }}>
             {INSTAGRAM_HANDLE}
           </a>
         </div>
@@ -1012,16 +1516,16 @@ function LeadForm() {
           padding: "16px 36px",
           borderRadius: 999,
           border: "none",
-          background: C.accent,
-          color: "#FDFBF5",
+          background: C.olive,
+          color: C.cream,
           cursor: status === "sending" ? "wait" : "pointer",
           opacity: status === "sending" ? 0.7 : 1,
-          transition: "opacity .25s ease, transform .25s ease",
+          transition: "opacity .25s ease",
         }}
       >
-        {status === "sending" ? "Enviando…" : "Quiero más info ✦"}
+        {status === "sending" ? "Enviando…" : "Apartar mi lugar ✦"}
       </button>
-      <div style={{ fontFamily: BODY, fontSize: 12.5, color: C.muted, textAlign: "center" }}>
+      <div style={{ fontFamily: BODY, fontSize: 12.5, color: C.taupe, textAlign: "center" }}>
         Solo usamos tu correo para responderte. Nada de spam, lo prometemos.
       </div>
     </form>
@@ -1041,33 +1545,35 @@ function IconInstagram({ size = 18, color = C.ink }) {
 
 // ═══ LANDING ═══
 export default function Landing() {
-  const sectionPad = { padding: "110px 28px" };
   const eyebrow = {
     fontFamily: BODY,
     fontSize: 12,
     fontWeight: 600,
     letterSpacing: 3,
     textTransform: "uppercase",
-    color: C.gold,
+    color: C.olive,
     marginBottom: 18,
   };
   const h2 = {
-    fontFamily: SERIF,
-    fontSize: "clamp(30px, 4.5vw, 44px)",
-    fontWeight: 500,
-    lineHeight: 1.2,
+    fontFamily: DISPLAY,
+    fontSize: "clamp(30px, 4.5vw, 46px)",
+    fontWeight: 400,
+    lineHeight: 1.15,
     color: C.ink,
     margin: 0,
   };
 
   return (
-    <div id="top" style={{ background: C.bg, color: C.ink, fontFamily: BODY, overflowX: "hidden" }}>
+    <div id="top" style={{ background: C.ivory, color: C.ink, fontFamily: BODY, overflowX: "hidden" }}>
       <style>{`
         @keyframes tp-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         @keyframes tp-fade-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
         @keyframes tp-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         html { scroll-behavior: smooth; }
-        @media (max-width: 760px) { .tp-nav-links { display: none !important; } }
+        @media (max-width: 820px) { .tp-nav-links { display: none !important; } }
+        @media (prefers-reduced-motion: reduce) {
+          * { animation: none !important; transition: none !important; }
+        }
       `}</style>
       <Grain />
       <Nav />
@@ -1076,33 +1582,44 @@ export default function Landing() {
       <header
         style={{
           position: "relative",
-          minHeight: "92vh",
+          minHeight: "94vh",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          padding: "140px 24px 60px",
-          background: `radial-gradient(ellipse 90% 60% at 50% 0%, #F7F1E2 0%, ${C.bg} 70%)`,
+          padding: "150px 24px 70px",
+          background: `radial-gradient(ellipse 90% 60% at 50% 0%, ${C.nude} 0%, ${C.ivory} 70%)`,
           overflow: "hidden",
         }}
       >
-        <GoldBranch style={{ top: 70, right: -30 }} />
-        <GoldBranch style={{ bottom: -20, left: -40, transform: "rotate(160deg)" }} flip />
-        <div style={{ position: "relative", zIndex: 2, maxWidth: 880, animation: "tp-fade-up 1s ease both" }}>
-          <div style={{ ...eyebrow, marginBottom: 24 }}>The Project by Fer</div>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: "12%",
+            right: "-4%",
+            opacity: 0.13,
+            animation: "tp-float 5s ease-in-out infinite",
+          }}
+        >
+          <TpMark size={280} color={C.olive} />
+        </div>
+        <div style={{ position: "relative", zIndex: 2, maxWidth: 900, animation: "tp-fade-up 1s ease both" }}>
+          <div style={{ ...eyebrow, marginBottom: 26 }}>The Project by Fer · Find ✦ Elevate ✦ Rise</div>
           <h1
             style={{
-              fontFamily: SERIF,
-              fontWeight: 500,
-              fontSize: "clamp(40px, 7vw, 76px)",
-              lineHeight: 1.12,
+              fontFamily: DISPLAY,
+              fontWeight: 400,
+              fontSize: "clamp(42px, 7.2vw, 82px)",
+              lineHeight: 1.08,
               margin: "0 0 26px",
               letterSpacing: -0.5,
+              color: C.ink,
             }}
           >
-            Tu día, tu mente y tu trabajo —{" "}
-            <em style={{ fontStyle: "italic", color: C.accent }}>en un solo lugar.</em>
+            Te va bien.
+            <RotatingLine />
           </h1>
           <p
             style={{
@@ -1111,28 +1628,31 @@ export default function Landing() {
               lineHeight: 1.7,
               color: C.ink,
               opacity: 0.75,
-              maxWidth: 620,
+              maxWidth: 640,
               margin: "0 auto 40px",
             }}
           >
-            El espacio diario contra el burnout, hecho para mujeres que quieren brillar en lo que hacen
-            sin quemarse en el intento.
+            The Project es el espacio donde las mujeres que lo tienen todo en papel descubren qué
+            quieren de verdad — y lo construyen. Con método, con comunidad y contigo en el centro.
           </p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-            <CtaButton href="/space">Crear mi espacio gratis</CtaButton>
-            <CtaButton href="#que-es" ghost>
-              Ver cómo funciona
-            </CtaButton>
+            <Cta href={APP_URL}>Quiero empezar YA ✦</Cta>
+            <Cta href="#membresia" ghost>
+              Conocer la membresía
+            </Cta>
           </div>
+          <p style={{ fontFamily: ACCENT, fontStyle: "italic", fontSize: 15.5, color: C.taupe, marginTop: 26 }}>
+            La app es gratis. Tu claridad, no tiene precio.
+          </p>
         </div>
         <div
           style={{
             position: "absolute",
-            bottom: 26,
+            bottom: 24,
             left: "50%",
-            transform: "translateX(-50%)",
+            marginLeft: -8,
             fontSize: 22,
-            color: C.muted,
+            color: C.taupe,
             animation: "tp-float 2.6s ease-in-out infinite",
           }}
         >
@@ -1140,107 +1660,189 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* ── CARRUSEL DE ARCOS ── */}
-      <section style={{ padding: "70px 0 30px" }}>
+      {/* ── CINTA FIND ELEVATE RISE ── */}
+      <Ribbon items={["Find", "Elevate", "Rise", "Despierta", "Claridad", "Intención"]} />
+
+      {/* ── QUIZ ¿TE SUENA? ── */}
+      <section style={{ padding: "100px 28px", background: C.nude }}>
         <Reveal>
-          <div style={{ textAlign: "center", padding: "0 28px" }}>
-            <div style={eyebrow}>Un vistazo adentro</div>
-            <h2 style={h2}>Todo lo que cargas en la cabeza, por fin en un espacio.</h2>
+          <div style={{ textAlign: "center", marginBottom: 46 }}>
+            <div style={eyebrow}>Sé honesta</div>
+            <h2 style={h2}>¿Te suena?</h2>
           </div>
         </Reveal>
-        <ArchMarquee />
+        <Reveal delay={120}>
+          <Quiz />
+        </Reveal>
       </section>
 
       {/* ── QUÉ ES ── */}
-      <section id="que-es" style={{ ...sectionPad, background: C.card, borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, position: "relative", overflow: "hidden" }}>
-        <GoldBranch style={{ top: -40, right: -60, transform: "rotate(90deg)" }} size={260} />
+      <section id="que-es" style={{ padding: "110px 28px", position: "relative", overflow: "hidden" }}>
         <Reveal>
-          <div style={{ maxWidth: 780, margin: "0 auto", textAlign: "center" }}>
+          <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
             <div style={eyebrow}>Qué es The Project</div>
             <p
               style={{
-                fontFamily: SERIF,
-                fontSize: "clamp(24px, 3.4vw, 34px)",
-                lineHeight: 1.5,
+                fontFamily: DISPLAY,
+                fontSize: "clamp(26px, 3.6vw, 38px)",
+                lineHeight: 1.35,
                 color: C.ink,
-                margin: 0,
+                margin: "0 0 34px",
               }}
             >
-              No es otra app de productividad. Es un <em style={{ color: C.accent }}>espacio anti-burnout</em>:
-              junta tus pendientes, tu journaling y tu bienestar en un ritual diario que{" "}
-              <em style={{ color: C.gold }}>primero te pregunta cómo estás</em> — y después qué vas a hacer.
+              Tu espacio para dejar de vivir en{" "}
+              <em style={{ fontFamily: ACCENT, fontStyle: "italic", color: C.olive }}>autopilot</em> y
+              construir la vida que sí quieres.
             </p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                fontFamily: BODY,
+                fontSize: 15.5,
+                color: C.taupe,
+                marginBottom: 18,
+              }}
+            >
+              <span>— No es una escuela de negocios.</span>
+              <span>— No es un retiro espiritual raro.</span>
+              <span>— No es networking de tarjetas.</span>
+            </div>
+            <p style={{ fontFamily: ACCENT, fontStyle: "italic", fontWeight: 500, fontSize: 21, color: C.ink, margin: 0 }}>
+              ✦ Es todo eso junto, pero mejor.
+            </p>
+          </div>
+        </Reveal>
+        <Reveal delay={150}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 40,
+              flexWrap: "wrap",
+              marginTop: 64,
+              textAlign: "center",
+            }}
+          >
+            {[
+              ["Mindset", "el motor", "Las formas de pensar distinto que desbloquean claridad."],
+              ["Mentoring", "el método", "Aterrizar el “qué quiero” en un plan real y accionable."],
+              ["Networking", "el sostén", "La comunidad de mujeres que acompaña el camino."],
+            ].map(([t, sub, d], i) => (
+              <div key={t} style={{ maxWidth: 250 }}>
+                <div style={{ fontFamily: DISPLAY, fontSize: 24, color: C.ink }}>{t}</div>
+                <div style={{ fontFamily: ACCENT, fontStyle: "italic", fontSize: 16, color: C.olive, margin: "4px 0 10px" }}>
+                  {sub}
+                </div>
+                <p style={{ fontFamily: BODY, fontSize: 13.5, lineHeight: 1.7, color: C.ink, opacity: 0.7, margin: 0 }}>{d}</p>
+              </div>
+            ))}
           </div>
         </Reveal>
       </section>
 
-      {/* ── CÓMO AYUDAMOS ── */}
-      <section id="como-ayuda" style={sectionPad}>
+      {/* ── ECOSISTEMA (banda tinta) ── */}
+      <section style={{ padding: "110px 28px", background: C.ink }}>
         <Reveal>
-          <div style={{ textAlign: "center", marginBottom: 70 }}>
-            <div style={eyebrow}>Cómo te ayudamos</div>
-            <h2 style={h2}>Menos caos, más claridad.</h2>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <div style={{ ...eyebrow, color: C.soft }}>Todo conectado, en un solo lugar</div>
+            <h2 style={{ ...h2, color: C.ivory }}>Un ecosistema hecho para ti.</h2>
+            <p style={{ fontFamily: ACCENT, fontStyle: "italic", fontSize: 17, color: C.greige, marginTop: 14 }}>
+              toca cada pieza para conocerla
+            </p>
           </div>
         </Reveal>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: 40,
-            maxWidth: 980,
-            margin: "0 auto 90px",
-          }}
-        >
-          {[
-            {
-              icon: <IconDay />,
-              title: "Ritual diario",
-              text: "Check-ins de mañana, tarde y noche que se adaptan a tu momento del día. Dos minutos que cambian cómo lo vives.",
-            },
-            {
-              icon: <IconSpace />,
-              title: "Todo en un lugar",
-              text: "Pendientes de trabajo y de vida separados, journaling guiado y tu progreso del mes — en un dashboard que se siente tuyo.",
-            },
-            {
-              icon: <IconHeartHand />,
-              title: "Acompañamiento real",
-              text: "Tips según tu reto del momento y, con Premium, una IA que lee tu energía y te guía con recomendaciones personalizadas.",
-            },
-          ].map((f, i) => (
-            <Reveal key={f.title} delay={i * 140}>
-              <div style={{ textAlign: "center", padding: "0 10px" }}>
-                <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>{f.icon}</div>
-                <div style={{ fontFamily: SERIF, fontSize: 22, marginBottom: 12 }}>{f.title}</div>
-                <p style={{ fontFamily: BODY, fontSize: 14.5, lineHeight: 1.75, color: C.ink, opacity: 0.72, margin: 0 }}>
-                  {f.text}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        <Reveal delay={120}>
+          <EcosystemCards />
+        </Reveal>
+      </section>
+
+      {/* ── LA APP ── */}
+      <section id="la-app" style={{ padding: "100px 0 40px" }}>
         <Reveal>
-          <DayTabs />
+          <div style={{ textAlign: "center", padding: "0 28px" }}>
+            <div style={eyebrow}>La app · empieza hoy, gratis</div>
+            <h2 style={h2}>Tu ritual diario vive aquí.</h2>
+            <p style={{ fontFamily: BODY, fontSize: 15.5, color: C.taupe, maxWidth: 520, margin: "16px auto 0", lineHeight: 1.7 }}>
+              Dos minutos en la mañana, dos en la noche. Tu mente en orden, tus pendientes en su lugar
+              y tu progreso creciendo — sin otra app más que abrir.
+            </p>
+          </div>
+        </Reveal>
+        <ArchMarquee />
+        <Reveal>
+          <div style={{ textAlign: "center", paddingBottom: 50 }}>
+            <Cta href={APP_URL}>Crear mi espacio gratis →</Cta>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ── UN MES ADENTRO ── */}
+      <section id="tu-mes" style={{ padding: "100px 28px", background: C.nude, borderTop: `1px solid ${C.sand}` }}>
+        <Reveal>
+          <div style={{ textAlign: "center", marginBottom: 50 }}>
+            <div style={eyebrow}>La membresía, por dentro</div>
+            <h2 style={h2}>Así se ve tu mes.</h2>
+          </div>
+        </Reveal>
+        <Reveal delay={120}>
+          <MonthTimeline />
+        </Reveal>
+      </section>
+
+      {/* ── RETO AWAKE (banda tinta) ── */}
+      <section id="awake" style={{ padding: "110px 28px", background: C.ink }}>
+        <Reveal>
+          <div style={{ textAlign: "center", marginBottom: 46 }}>
+            <div style={{ ...eyebrow, color: C.soft }}>El reto · #Awake21</div>
+            <h2 style={{ ...h2, color: C.ivory }}>21 días para despertar.</h2>
+            <p style={{ fontFamily: ACCENT, fontStyle: "italic", fontSize: 17, color: C.greige, marginTop: 14 }}>
+              un prompt al día, acompañada — el reto termina, el viaje empieza
+            </p>
+          </div>
+        </Reveal>
+        <Reveal delay={120}>
+          <AwakeChallenge />
+        </Reveal>
+        <Reveal delay={200}>
+          <div style={{ textAlign: "center", marginTop: 44 }}>
+            <Cta href="#contacto" dark>
+              Quiero el próximo reto ✦
+            </Cta>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ── MINDSET ── */}
+      <section style={{ padding: "100px 28px" }}>
+        <Reveal>
+          <div style={{ textAlign: "center", marginBottom: 44 }}>
+            <div style={eyebrow}>Pensar distinto · respaldado por Wharton, Columbia y premios Nobel</div>
+            <h2 style={h2}>No te falta capacidad.</h2>
+            <p style={{ fontFamily: ACCENT, fontStyle: "italic", fontSize: 22, color: C.olive, marginTop: 10 }}>
+              te falta pensar distinto.
+            </p>
+          </div>
+        </Reveal>
+        <Reveal delay={120}>
+          <MindsetCarousel />
         </Reveal>
       </section>
 
       {/* ── TESTIMONIOS ── */}
       <section
-        id="testimonios"
         style={{
-          ...sectionPad,
-          background: C.card,
-          borderTop: `1px solid ${C.line}`,
-          borderBottom: `1px solid ${C.line}`,
-          position: "relative",
-          overflow: "hidden",
+          padding: "100px 28px",
+          background: C.nude,
+          borderTop: `1px solid ${C.sand}`,
+          borderBottom: `1px solid ${C.sand}`,
         }}
       >
-        <GoldBranch style={{ bottom: -50, left: -50, transform: "rotate(200deg)" }} size={240} flip />
         <Reveal>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <div style={eyebrow}>Testimonios</div>
-            <h2 style={h2}>Ellas ya hicieron suyo el espacio.</h2>
+          <div style={{ textAlign: "center", marginBottom: 50 }}>
+            <div style={eyebrow}>Ellas ya empezaron</div>
+            <h2 style={h2}>No estás sola en esto.</h2>
           </div>
         </Reveal>
         <Reveal delay={120}>
@@ -1248,39 +1850,42 @@ export default function Landing() {
         </Reveal>
       </section>
 
-      {/* ── PLANES ── */}
-      <section id="planes" style={sectionPad}>
+      {/* ── MEMBRESÍA ── */}
+      <section id="membresia" style={{ padding: "110px 28px 100px" }}>
         <Reveal>
-          <div style={{ textAlign: "center", marginBottom: 60 }}>
-            <div style={eyebrow}>Planes</div>
-            <h2 style={h2}>Empieza gratis. Crece cuando quieras.</h2>
+          <div style={{ textAlign: "center", marginBottom: 64 }}>
+            <div style={eyebrow}>Membresía</div>
+            <h2 style={h2}>Empieza gratis. Crece acompañada.</h2>
+            <p style={{ fontFamily: BODY, fontSize: 15.5, color: C.taupe, maxWidth: 560, margin: "16px auto 0", lineHeight: 1.7 }}>
+              La app es tuya desde hoy sin pagar nada. La membresía te suma el método, las sesiones en
+              vivo y la comunidad — todo en un solo lugar. Y si quieres IA en tu espacio, es un add-on.
+            </p>
           </div>
         </Reveal>
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1160, margin: "0 auto" }}>
           <Plans />
         </div>
       </section>
 
-      {/* ── CONTACTO / REGISTRO ── */}
+      {/* ── CINTA 2 ── */}
+      <Ribbon items={["Tu momento es ahora", "Find", "Elevate", "Rise", "#Awake21"]} />
+
+      {/* ── CONTACTO ── */}
       <section
         id="contacto"
         style={{
-          ...sectionPad,
-          background: `linear-gradient(180deg, ${C.card} 0%, #EFE7D4 100%)`,
-          borderTop: `1px solid ${C.line}`,
-          position: "relative",
-          overflow: "hidden",
+          padding: "110px 28px",
+          background: `linear-gradient(180deg, ${C.ivory} 0%, ${C.nude} 100%)`,
         }}
       >
-        <GoldBranch style={{ top: 30, right: -40 }} size={200} />
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
           <Reveal>
             <div style={{ textAlign: "center", marginBottom: 44 }}>
-              <div style={eyebrow}>Hablemos</div>
-              <h2 style={h2}>¿Quieres saber más?</h2>
+              <div style={eyebrow}>Grupo fundadoras · lugares limitados</div>
+              <h2 style={h2}>Aparta tu lugar.</h2>
               <p style={{ fontFamily: BODY, fontSize: 15.5, lineHeight: 1.7, color: C.ink, opacity: 0.72, maxWidth: 480, margin: "18px auto 0" }}>
-                Déjanos tus datos y te contamos todo sobre The Project — o crea tu espacio ahora mismo,
-                es gratis y toma menos de dos minutos.
+                Déjanos tus datos y Fer te escribe con todo: fechas, detalles y tu lugar en el grupo
+                piloto. O empieza gratis con la app ahora mismo — toma menos de dos minutos.
               </p>
             </div>
           </Reveal>
@@ -1288,7 +1893,7 @@ export default function Landing() {
             <LeadForm />
           </Reveal>
           <Reveal delay={200}>
-            <div style={{ textAlign: "center", marginTop: 34 }}>
+            <div style={{ textAlign: "center", marginTop: 32 }}>
               <a
                 href={INSTAGRAM_URL}
                 target="_blank"
@@ -1304,20 +1909,20 @@ export default function Landing() {
                   textDecoration: "none",
                   padding: "12px 22px",
                   borderRadius: 999,
-                  border: `1.5px solid ${C.line}`,
-                  background: "#FDFBF5",
+                  border: `1.5px solid ${C.sand}`,
+                  background: C.cream,
                   transition: "all .25s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = C.gold;
+                  e.currentTarget.style.borderColor = C.olive;
                   e.currentTarget.style.transform = "translateY(-2px)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = C.line;
+                  e.currentTarget.style.borderColor = C.sand;
                   e.currentTarget.style.transform = "none";
                 }}
               >
-                <IconInstagram /> Síguenos · {INSTAGRAM_HANDLE}
+                <IconInstagram /> O mándanos DM · {INSTAGRAM_HANDLE}
               </a>
             </div>
           </Reveal>
@@ -1325,31 +1930,30 @@ export default function Landing() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer
-        style={{
-          background: C.dark,
-          color: "#EFEAD9",
-          padding: "56px 28px 40px",
-          textAlign: "center",
-        }}
-      >
-        <div style={{ fontFamily: SERIF, fontSize: 22, letterSpacing: 3, marginBottom: 10 }}>THE PROJECT</div>
-        <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 14, opacity: 0.7, marginBottom: 26 }}>
-          Brillar sin quemarte.
+      <footer style={{ background: C.ink, color: C.ivory, padding: "60px 28px 42px", textAlign: "center" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+          <TpMark size={46} color={C.ivory} />
+        </div>
+        <div style={{ fontFamily: DISPLAY, fontSize: 21, letterSpacing: 3, marginBottom: 8 }}>THE PROJECT</div>
+        <div style={{ fontFamily: ACCENT, fontStyle: "italic", fontSize: 15, opacity: 0.75, marginBottom: 28 }}>
+          Find · Elevate · Rise
         </div>
         <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap", marginBottom: 30 }}>
-          <Link href="/space" style={{ color: "#EFEAD9", fontFamily: BODY, fontSize: 13, opacity: 0.8, textDecoration: "none" }}>
-            Entrar a mi espacio
+          <Link href={APP_URL} style={{ color: C.ivory, fontFamily: BODY, fontSize: 13, opacity: 0.8, textDecoration: "none" }}>
+            Abrir mi espacio
           </Link>
-          <a href="#planes" style={{ color: "#EFEAD9", fontFamily: BODY, fontSize: 13, opacity: 0.8, textDecoration: "none" }}>
-            Planes
+          <a href="#membresia" style={{ color: C.ivory, fontFamily: BODY, fontSize: 13, opacity: 0.8, textDecoration: "none" }}>
+            Membresía
+          </a>
+          <a href="#awake" style={{ color: C.ivory, fontFamily: BODY, fontSize: 13, opacity: 0.8, textDecoration: "none" }}>
+            Reto AWAKE
           </a>
           <a
             href={INSTAGRAM_URL}
             target="_blank"
             rel="noreferrer"
             style={{
-              color: "#EFEAD9",
+              color: C.ivory,
               fontFamily: BODY,
               fontSize: 13,
               opacity: 0.8,
@@ -1359,11 +1963,11 @@ export default function Landing() {
               gap: 6,
             }}
           >
-            <IconInstagram size={15} color="#EFEAD9" /> {INSTAGRAM_HANDLE}
+            <IconInstagram size={15} color={C.ivory} /> {INSTAGRAM_HANDLE}
           </a>
         </div>
         <div style={{ fontFamily: BODY, fontSize: 11.5, opacity: 0.45 }}>
-          © {new Date().getFullYear()} The Project by Fer · Hecho con 🤍 para mujeres en corporativo LATAM
+          © {new Date().getFullYear()} The Project by Fer · Hecha con 🤍 para mujeres que van por más
         </div>
       </footer>
     </div>

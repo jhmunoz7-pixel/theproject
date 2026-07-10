@@ -1,19 +1,21 @@
-# The Project · Space
+# The Project
 
-Plataforma SaaS anti-burnout freemium para mujeres en corporativo LATAM, parte de
-[The Project by Fer](https://instagram.com/theprojectbyfer). Junta pendientes,
-journaling y bienestar en un solo espacio diario.
-
-Flujo: **onboarding** (una vez) → **check-in diario** (se adapta a mañana/tarde/noche)
-→ **dashboard** tipo Monday con widgets → pestaña **Mi progreso** con métricas del mes.
+Plataforma de [The Project by Fer](https://instagram.com/theprojectbyfer)
+(**Find · Elevate · Rise**): el espacio donde las mujeres que lo tienen todo en
+papel descubren qué quieren de verdad — y lo construyen. El ecosistema junta la
+app (espacio diario), mentoring con método, networking consciente, el reto AWAKE
+de 21 días y una comunidad de mujeres.
 
 ## Rutas
 
-- `/` — **Landing page** de venta: qué es The Project, cómo ayuda, testimonios,
-  planes, formulario para pedir info (guarda leads en Supabase) y link a
-  [Instagram](https://instagram.com/theprojectbyfer). Estética editorial
-  crema/oliva/dorado con carruseles y transiciones al hacer scroll.
-- `/space` — la app (onboarding → check-in → dashboard).
+- `/` — **Landing del ecosistema**: hero con hook rotativo, quiz interactivo
+  "¿te suena?", pilares de marca (Mindset · Mentoring · Networking), tarjetas
+  del ecosistema, carrusel de la app, "así se ve tu mes", reto AWAKE, frases de
+  mindset, testimonios, membresía (app gratis / membresía fundadoras $349 MXN /
+  add-on IA $10 USD) y formulario para apartar lugar (tabla `leads` en Supabase).
+  Identidad del brand guideline: Gloock + Crimson Pro + Work Sans, paleta
+  tinta/olivo/marfil, cintas marquee y transiciones al hacer scroll.
+- `/espacio` — la app (onboarding → check-in diario → dashboard → Mi progreso).
 
 ## Stack
 
@@ -22,9 +24,10 @@ Flujo: **onboarding** (una vez) → **check-in diario** (se adapta a mañana/tar
 - **Anthropic** vía `/api/claude` — ruta de servidor que protege la API key.
 - Sin dependencias de UI: estilos inline, fuentes Fraunces + Work Sans, textura de grano.
 
-> **Stripe todavía no está conectado.** El botón "Activar Premium" desbloquea las
-> features de IA de forma simulada (como en el prototipo). Cuando se conecte Stripe,
-> el pago real de $10 USD/mes reemplazará ese toggle.
+> **Premium con Stripe (opcional).** Con las variables de Stripe configuradas,
+> "Activar Premium" abre Stripe Checkout y cobra $10 USD/mes de verdad; al volver
+> del pago, Premium se activa en Supabase. Sin esas variables, el botón funciona
+> en modo simulado (útil para probar sin cobrar).
 
 ## Correr en local
 
@@ -45,14 +48,18 @@ responden "no configurado". Para la experiencia completa, llena `.env.local`.
 | `CLAUDE_MODEL` | Modelo a usar (por defecto `claude-sonnet-5`) | No |
 | `NEXT_PUBLIC_SUPABASE_URL` | Proyecto Supabase | Para persistencia real |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Llave pública (anon) de Supabase | Para persistencia real |
+| `SUPABASE_SERVICE_ROLE_KEY` | Escritura de Premium desde el servidor (rutas Stripe) | Para cobro real |
+| `STRIPE_SECRET_KEY` | Llave secreta de Stripe | Para cobro real |
+| `STRIPE_PRICE_ID` | Precio recurrente del producto Premium (`price_...`) | Para cobro real |
+| `STRIPE_WEBHOOK_SECRET` | Desactiva Premium al cancelar la suscripción | Opcional |
 
 ## Supabase (persistencia real)
 
 1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. Corre las migraciones de `supabase/migrations/` en el **SQL Editor**:
-   `0001_init.sql` (tabla `user_kv` con Row Level Security) y
-   `0002_leads.sql` (tabla `leads` para el formulario de la landing —
-   inserción pública, lectura solo desde el dashboard de Supabase).
+2. Corre las migraciones de `supabase/migrations/` en el **SQL Editor**, en orden:
+   `0001_init.sql` (tabla `user_kv` con Row Level Security), `0002_registrations.sql`
+   (correos de registro) y `0002_leads.sql` (tabla `leads` para el formulario de la
+   landing — inserción pública, lectura solo desde el dashboard de Supabase).
 3. **Authentication → Providers → Anonymous sign-ins: ON.** La app usa sesión
    anónima para que cada navegador tenga su propio espacio persistente.
 4. Copia **Project URL** y **anon public key** a tus variables de entorno.
@@ -67,8 +74,24 @@ solo ve sus filas. Refleja 1:1 cómo la app guarda cada día como un blob.
 3. Agrega las variables de entorno (las 4 de arriba).
 4. Deploy. Conecta el dominio `space.theprojectbyfer.com` en **Settings → Domains**.
 
+## Stripe (cobro real)
+
+1. En Stripe: **Product catalog → Add product** → "Space Premium", precio
+   recurrente mensual de $10 USD → copia el `price_...`.
+2. **Developers → API keys** → copia la llave secreta (`sk_live_...` o `sk_test_...`).
+3. En Supabase: **Project Settings → API** → copia la llave `service_role`.
+4. Agrega las tres a las variables de entorno de Vercel y redeploy.
+5. (Opcional) **Developers → Webhooks** → endpoint
+   `https://tu-dominio/api/stripe/webhook` con los eventos
+   `customer.subscription.updated` y `customer.subscription.deleted`, y agrega
+   el `whsec_...` como `STRIPE_WEBHOOK_SECRET` — así Premium se apaga solo al
+   cancelar.
+
+Flujo: "Activar Premium" → `/api/stripe/checkout` crea la sesión → Stripe cobra →
+regresa por `/api/stripe/confirm`, que verifica el pago con Stripe y marca
+`tp:premium` en Supabase para esa usuaria.
+
 ## Qué sigue
 
-- **Stripe**: checkout de $10 USD/mes + webhook que active Premium de verdad.
 - **Cuentas con email**: hoy la sesión es anónima por navegador; vincular email
   hará que el espacio (y Premium) sigan a la usuaria entre dispositivos.

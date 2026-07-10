@@ -4,8 +4,12 @@ Plataforma SaaS anti-burnout freemium para mujeres en corporativo LATAM, parte d
 [The Project by Fer](https://instagram.com/theprojectbyfer). Junta pendientes,
 journaling y bienestar en un solo espacio diario.
 
-Flujo: **onboarding** (una vez) → **check-in diario** (se adapta a mañana/tarde/noche)
-→ **dashboard** tipo Monday con widgets → pestaña **Mi progreso** con métricas del mes.
+Flujo: **landing con registro** (`/`) → **onboarding** (una vez) → **check-in diario**
+(se adapta a mañana/tarde/noche) → **dashboard** flotante con widgets (`/espacio`) →
+pestaña **Mi progreso** con métricas del mes.
+
+Diseño: glassmorphism, blobs flotantes, layout asimétrico, pop-ups flotantes
+(pausa consciente, Premium), fuentes Fraunces + Work Sans, 10 paletas a elegir.
 
 ## Stack
 
@@ -41,8 +45,8 @@ responden "no configurado". Para la experiencia completa, llena `.env.local`.
 ## Supabase (persistencia real)
 
 1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. Corre la migración `supabase/migrations/0001_init.sql` en el **SQL Editor**
-   (crea la tabla `user_kv` con Row Level Security).
+2. Corre las migraciones de `supabase/migrations/` en el **SQL Editor**, en orden
+   (`user_kv` con Row Level Security y `registrations` para los correos de la landing).
 3. **Authentication → Providers → Anonymous sign-ins: ON.** La app usa sesión
    anónima para que cada navegador tenga su propio espacio persistente.
 4. Copia **Project URL** y **anon public key** a tus variables de entorno.

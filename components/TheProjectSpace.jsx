@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { store, getUid } from "@/lib/store";
+import { askClaude } from "@/lib/ai";
+import ProjectView from "@/components/MiProyecto";
 import {
   PALETTES, SERIF, BODY, ITALIC, dayId, cssVars,
   Heart, Grain, Blobs, GlobalStyles,
@@ -37,22 +39,6 @@ const CHALLENGE_TIPS = {
     tip: "El burnout no se resuelve trabajando más. Hoy agenda UNA pausa real (aunque sean 10 minutos) y protégela como una junta. Tu energía es el recurso que todo lo demás necesita.",
   },
 };
-
-// ── IA vía nuestro backend (/api/claude protege la API key) ──
-async function askClaude(prompt, system, maxTokens = 800) {
-  try {
-    const res = await fetch("/api/claude", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, system, maxTokens }),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.text || null;
-  } catch {
-    return null;
-  }
-}
 
 // ═══ APP ROOT ═══
 export default function TheProjectSpace() {
@@ -343,6 +329,7 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <div style={{ display: "flex", background: P.bg + "99", borderRadius: 100, padding: 3 }}>
               <button onClick={() => setView("hoy")} style={tabBtn(P, view === "hoy")}>Hoy</button>
+              <button onClick={() => setView("proyecto")} style={tabBtn(P, view === "proyecto")}>Mi proyecto</button>
               <button onClick={() => setView("progreso")} style={tabBtn(P, view === "progreso")}>Mi progreso</button>
             </div>
             {!premium && <button onClick={onPremium} style={{ fontFamily: BODY, fontSize: 12, fontWeight: 600, color: P.card, background: P.accent, border: "none", borderRadius: 100, padding: "8px 15px", cursor: "pointer", boxShadow: `0 6px 16px ${P.accent}44` }}>✦ Premium</button>}
@@ -352,11 +339,9 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
         </div>
       </div>
 
-      {view === "hoy" ? (
-        <TodayView P={P} profile={profile} dayData={dayData} update={update} premium={premium} onPremium={onPremium} onNewDay={onNewDay} />
-      ) : (
-        <ProgressView P={P} profile={profile} premium={premium} onPremium={onPremium} />
-      )}
+      {view === "hoy" && <TodayView P={P} profile={profile} dayData={dayData} update={update} premium={premium} onPremium={onPremium} onNewDay={onNewDay} />}
+      {view === "proyecto" && <ProjectView P={P} profile={profile} premium={premium} onPremium={onPremium} />}
+      {view === "progreso" && <ProgressView P={P} profile={profile} premium={premium} onPremium={onPremium} />}
 
       {showPalettes && <PaletteModal P={P} current={profile.paletteKey} onPick={(k) => { onPalette(k); setShowPalettes(false); }} onClose={() => setShowPalettes(false)} />}
     </div>
@@ -751,7 +736,7 @@ function PauseBubble({ P, premium, onPremium }) {
 }
 
 function PremiumModal({ P, onClose, onBuy }) {
-  const perks = ["Guía de IA que te habla y organiza tu día", "Prompts de journaling que se adaptan a ti", "Sugerencias de pendientes según tu profesión", "Análisis mensual de tus patrones de burnout", "Recordatorios inteligentes de pausas"];
+  const perks = ["Plan de trabajo a la medida para tu proyecto", "Guía de IA que te habla y organiza tu día", "Prompts de journaling que se adaptan a ti", "Sugerencias de pendientes según tu profesión", "Análisis mensual de tus patrones de burnout", "Recordatorios inteligentes de pausas"];
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(25,20,18,0.4)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, zIndex: 100 }}>
       <div onClick={(e) => e.stopPropagation()} className="glass fade" style={{ borderRadius: "56px 84px 56px 84px", maxWidth: 460, width: "100%", padding: "44px 40px", textAlign: "center" }}>

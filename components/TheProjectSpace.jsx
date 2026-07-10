@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { store } from "@/lib/store";
+import { store, getUid } from "@/lib/store";
 import {
   PALETTES, SERIF, BODY, ITALIC, dayId, cssVars,
   Heart, Grain, Blobs, GlobalStyles,
@@ -102,7 +102,25 @@ export default function TheProjectSpace() {
     const data = { ...md, date: dayId(), tasksWork: [], tasksPersonal: [], journal: "", affirmation: "", morningDone: true };
     await saveDay(data); setPhase("dashboard");
   };
-  const goPremium = async () => { setPremium(true); setShowPremium(false); await store.set("tp:premium", true); };
+  // Con Stripe configurado manda al Checkout real (tarjeta, Apple Pay…);
+  // sin Stripe (o sin Supabase) cae a la activación simulada del piloto.
+  const goPremium = async () => {
+    try {
+      const uid = await getUid();
+      if (uid) {
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uid }),
+        });
+        if (res.ok) {
+          const { url } = await res.json();
+          if (url) { window.location.href = url; return; }
+        }
+      }
+    } catch {}
+    setPremium(true); setShowPremium(false); await store.set("tp:premium", true);
+  };
   const updatePalette = async (paletteKey) => {
     const p = { ...profile, paletteKey };
     setProfile(p); await store.set("tp:profile", p);
@@ -747,7 +765,8 @@ function PremiumModal({ P, onClose, onBuy }) {
           {perks.map((p, i) => <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "8px 0", fontSize: 14, color: P.ink }}><span style={{ color: P.accent, flexShrink: 0 }}>✦</span> {p}</div>)}
         </div>
         <button onClick={onBuy} style={{ ...primaryBtn(P), width: "100%" }}>Activar Premium</button>
-        <button onClick={onClose} style={{ fontFamily: BODY, fontSize: 13, color: P.muted, background: "none", border: "none", cursor: "pointer", marginTop: 14, textDecoration: "underline" }}>Ahora no</button>
+        <div style={{ fontSize: 11.5, color: P.muted, marginTop: 10 }}>Pago seguro con Stripe · Cancela cuando quieras</div>
+        <button onClick={onClose} style={{ fontFamily: BODY, fontSize: 13, color: P.muted, background: "none", border: "none", cursor: "pointer", marginTop: 10, textDecoration: "underline" }}>Ahora no</button>
       </div>
     </div>
   );

@@ -18,9 +18,10 @@ Diseño: glassmorphism, blobs flotantes, layout asimétrico, pop-ups flotantes
 - **Anthropic** vía `/api/claude` — ruta de servidor que protege la API key.
 - Sin dependencias de UI: estilos inline, fuentes Fraunces + Work Sans, textura de grano.
 
-> **Stripe todavía no está conectado.** El botón "Activar Premium" desbloquea las
-> features de IA de forma simulada (como en el prototipo). Cuando se conecte Stripe,
-> el pago real de $10 USD/mes reemplazará ese toggle.
+> **Premium con Stripe (opcional).** Con las variables de Stripe configuradas,
+> "Activar Premium" abre Stripe Checkout y cobra $10 USD/mes de verdad; al volver
+> del pago, Premium se activa en Supabase. Sin esas variables, el botón funciona
+> en modo simulado (útil para probar sin cobrar).
 
 ## Correr en local
 
@@ -41,6 +42,10 @@ responden "no configurado". Para la experiencia completa, llena `.env.local`.
 | `CLAUDE_MODEL` | Modelo a usar (por defecto `claude-sonnet-5`) | No |
 | `NEXT_PUBLIC_SUPABASE_URL` | Proyecto Supabase | Para persistencia real |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Llave pública (anon) de Supabase | Para persistencia real |
+| `SUPABASE_SERVICE_ROLE_KEY` | Escritura de Premium desde el servidor (rutas Stripe) | Para cobro real |
+| `STRIPE_SECRET_KEY` | Llave secreta de Stripe | Para cobro real |
+| `STRIPE_PRICE_ID` | Precio recurrente del producto Premium (`price_...`) | Para cobro real |
+| `STRIPE_WEBHOOK_SECRET` | Desactiva Premium al cancelar la suscripción | Opcional |
 
 ## Supabase (persistencia real)
 
@@ -61,8 +66,24 @@ solo ve sus filas. Refleja 1:1 cómo la app guarda cada día como un blob.
 3. Agrega las variables de entorno (las 4 de arriba).
 4. Deploy. Conecta el dominio `space.theprojectbyfer.com` en **Settings → Domains**.
 
+## Stripe (cobro real)
+
+1. En Stripe: **Product catalog → Add product** → "Space Premium", precio
+   recurrente mensual de $10 USD → copia el `price_...`.
+2. **Developers → API keys** → copia la llave secreta (`sk_live_...` o `sk_test_...`).
+3. En Supabase: **Project Settings → API** → copia la llave `service_role`.
+4. Agrega las tres a las variables de entorno de Vercel y redeploy.
+5. (Opcional) **Developers → Webhooks** → endpoint
+   `https://tu-dominio/api/stripe/webhook` con los eventos
+   `customer.subscription.updated` y `customer.subscription.deleted`, y agrega
+   el `whsec_...` como `STRIPE_WEBHOOK_SECRET` — así Premium se apaga solo al
+   cancelar.
+
+Flujo: "Activar Premium" → `/api/stripe/checkout` crea la sesión → Stripe cobra →
+regresa por `/api/stripe/confirm`, que verifica el pago con Stripe y marca
+`tp:premium` en Supabase para esa usuaria.
+
 ## Qué sigue
 
-- **Stripe**: checkout de $10 USD/mes + webhook que active Premium de verdad.
 - **Cuentas con email**: hoy la sesión es anónima por navegador; vincular email
   hará que el espacio (y Premium) sigan a la usuaria entre dispositivos.

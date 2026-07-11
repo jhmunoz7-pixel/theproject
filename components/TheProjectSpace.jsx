@@ -491,7 +491,7 @@ function ProgressView({ P, profile, premium, onPremium }) {
           { big: `${completion}%`, label: "pendientes cumplidos", sub: `${doneTasks} de ${totalTasks}` },
           { big: journalDays, label: "días de journaling", sub: "tu mente en orden" },
         ].map((m, i) => (
-          <div key={i} className={`glass lift fade d${i + 1}`} style={{ borderRadius: radii[i], padding: "24px 22px", transform: `rotate(${i % 2 ? 0.7 : -0.7}deg)` }}>
+          <div key={i} className={`glass lift fade d${i + 1}`} style={{ borderRadius: radii[i], padding: "24px 22px" }}>
             <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 42, color: P.accent, lineHeight: 1 }}>{m.big}</div>
             <div style={{ fontSize: 13, fontWeight: 600, color: P.ink, marginTop: 8 }}>{m.label}</div>
             <div style={{ fontSize: 12, color: P.muted, marginTop: 2 }}>{m.sub}</div>
@@ -533,7 +533,7 @@ function ProgressView({ P, profile, premium, onPremium }) {
           const fecha = new Date(d.date + "T12:00:00").toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
           const open = openDay === d.date;
           return (
-            <div key={i} onClick={() => setOpenDay(open ? null : d.date)} className="glass-soft lift" style={{ borderRadius: open ? "28px 48px 28px 48px" : 100, padding: open ? "20px 26px" : "16px 24px", cursor: "pointer", transform: `rotate(${i % 2 ? 0.4 : -0.4}deg)` }}>
+            <div key={i} onClick={() => setOpenDay(open ? null : d.date)} className="glass-soft lift" style={{ borderRadius: open ? "28px 48px 28px 48px" : 100, padding: open ? "20px 26px" : "16px 24px", cursor: "pointer" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: P.ink, textTransform: "capitalize" }}>{fecha}</div>
                 <div style={{ fontSize: 12, color: P.muted }}>{d.mood} · {open ? "cerrar" : "leer"}</div>
@@ -566,7 +566,7 @@ function RecoCard({ P, profile, dayData, premium, onPremium }) {
   };
 
   return (
-    <div className="glass-dark floaty" style={{ "--tilt": "0.8deg", borderRadius: "48px 68px 42px 74px", padding: "28px 30px" }}>
+    <div className="glass-dark floaty" style={{ borderRadius: "48px 68px 42px 74px", padding: "28px 30px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <Heart color={P.paperSoft} size={16} />
         <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: P.paperSoft }}>Para ti hoy · {reto}</div>
@@ -685,7 +685,7 @@ function AffirmWidget({ P, dayData, update }) {
   };
   const shown = dayData.affirmation || affs[new Date().getDate() % affs.length];
   return (
-    <div className="glass-dark floaty-slow" style={{ "--tilt": "-1deg", borderRadius: "58% 42% 55% 45% / 48% 55% 45% 52%", padding: "38px 30px", textAlign: "center" }}>
+    <div className="glass-dark floaty-slow" style={{ borderRadius: "58% 42% 55% 45% / 48% 55% 45% 52%", padding: "38px 30px", textAlign: "center" }}>
       <Heart color={P.paperSoft} size={16} />
       <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 19, color: P.paper, lineHeight: 1.45, margin: "12px 0 18px" }}>"{shown}"</div>
       <button onClick={gen} disabled={loading} style={{ fontFamily: BODY, fontSize: 12.5, fontWeight: 600, padding: "9px 16px", borderRadius: 100, border: `1px solid ${P.paperSoft}`, background: "transparent", color: P.paper, cursor: "pointer" }}>

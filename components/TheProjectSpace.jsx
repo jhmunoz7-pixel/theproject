@@ -40,6 +40,9 @@ const CHALLENGE_TIPS = {
   },
 };
 
+// Día en blanco: se crea solo al entrar — el check-in es opcional.
+const emptyDay = () => ({ date: dayId(), mood: null, moodScore: null, energy: null, intention: "", challenge: null, tasksWork: [], tasksPersonal: [], journal: "", affirmation: "", morningDone: true, skipCheckin: false, checkinTouched: false });
+
 // ═══ APP ROOT ═══
 export default function TheProjectSpace() {
   const [phase, setPhase] = useState("loading");
@@ -67,11 +70,13 @@ export default function TheProjectSpace() {
         }
         setProfile(prof);
         try { if (await store.get("tp:premium")) setPremium(true); } catch {}
-        try {
-          const today = await store.get(`tp:day:${dayId()}`);
-          if (today && today.morningDone) { setDayData(today); setPhase("dashboard"); return; }
-        } catch {}
-        setPhase("morning");
+        // Directo al espacio: el día se crea solo y el check-in queda opcional.
+        let today = null;
+        try { today = await store.get(`tp:day:${dayId()}`); } catch {}
+        const data = { ...emptyDay(), ...(today || {}) };
+        setDayData(data);
+        if (!today) { try { await store.set(`tp:day:${dayId()}`, data); } catch {} }
+        setPhase("dashboard");
       } catch {
         // Si el storage falla, arranca en onboarding
         if (!cancelled) setPhase("onboard");
@@ -83,9 +88,9 @@ export default function TheProjectSpace() {
   }, []);
 
   const saveDay = async (data) => { setDayData(data); await store.set(`tp:day:${dayId()}`, data); };
-  const completeOnboard = async (prof) => { await store.set("tp:profile", prof); setProfile(prof); setPhase("morning"); };
+  const completeOnboard = async (prof) => { await store.set("tp:profile", prof); setProfile(prof); await saveDay(emptyDay()); setPhase("dashboard"); };
   const completeMorning = async (md) => {
-    const data = { ...md, date: dayId(), tasksWork: [], tasksPersonal: [], journal: "", affirmation: "", morningDone: true };
+    const data = { ...(dayData || emptyDay()), ...md, date: dayId(), morningDone: true, skipCheckin: false, checkinTouched: true };
     await saveDay(data); setPhase("dashboard");
   };
   // Con Stripe configurado manda al Checkout real (tarjeta, Apple Pay…);
@@ -380,15 +385,22 @@ function TodayView({ P, profile, dayData, update, premium, onPremium, onNewDay }
           <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 17, color: P.accent, marginBottom: 8 }}>tu intención de hoy</div>
           <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "clamp(1.8rem, 4.2vw, 2.9rem)", lineHeight: 1.15, color: P.ink }}>{dayData.intention || "Vivir hoy con presencia."}</div>
           <div style={{ display: "flex", gap: 18, marginTop: 18, fontSize: 13, color: P.muted, flexWrap: "wrap", alignItems: "center" }}>
-            <span className="glass-soft" style={{ padding: "7px 14px", borderRadius: 100 }}>Ánimo: <strong style={{ color: P.accent }}>{dayData.mood}</strong></span>
-            <span className="glass-soft" style={{ padding: "7px 14px", borderRadius: 100 }}>Energía: <strong style={{ color: P.accent }}>{dayData.energy}</strong></span>
-            <button onClick={onNewDay} style={{ fontFamily: BODY, fontSize: 13, color: P.muted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>Rehacer check-in</button>
+            {dayData.mood && <span className="glass-soft" style={{ padding: "7px 14px", borderRadius: 100 }}>Ánimo: <strong style={{ color: P.accent }}>{dayData.mood}</strong></span>}
+            {dayData.energy && <span className="glass-soft" style={{ padding: "7px 14px", borderRadius: 100 }}>Energía: <strong style={{ color: P.accent }}>{dayData.energy}</strong></span>}
+            <button onClick={onNewDay} style={{ fontFamily: BODY, fontSize: 13, color: P.muted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>{dayData.mood ? "Rehacer check-in" : "Check-in completo"}</button>
           </div>
         </div>
         <div className="fade d2" style={{ flex: "1 1 0", minWidth: 0 }}>
           <RecoCard P={P} profile={profile} dayData={dayData} premium={premium} onPremium={onPremium} />
         </div>
       </div>
+
+      {/* Check-in rápido, totalmente opcional */}
+      {!dayData.checkinTouched && !dayData.skipCheckin && !dayData.mood && (
+        <div className="fade d2" style={{ maxWidth: 1120, margin: "0 auto", padding: "18px 24px 0" }}>
+          <QuickCheckin P={P} dayData={dayData} update={update} />
+        </div>
+      )}
 
       {/* Bento asimétrico */}
       <div className="bento" style={{ maxWidth: 1120, margin: "0 auto", padding: "30px 24px 130px" }}>
@@ -399,6 +411,29 @@ function TodayView({ P, profile, dayData, update, premium, onPremium, onNewDay }
         <div className="w6 fade d5"><AssistantWidget P={P} profile={profile} dayData={dayData} premium={premium} onPremium={onPremium} /></div>
       </div>
     </>
+  );
+}
+
+// ── Check-in rápido y opcional (chips en una sola tarjeta) ──
+function QuickCheckin({ P, dayData, update }) {
+  const [intention, setIntention] = useState("");
+  const moods = [["En paz", 5], ["Bien", 4], ["Neutral", 3], ["Con estrés", 2], ["Abrumada", 1]];
+  const saveIntention = () => { if (intention.trim()) update({ intention: intention.trim() }); };
+
+  return (
+    <div className="glass-soft" style={{ borderRadius: "30px 56px 30px 56px", padding: "20px 26px", display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
+      <div style={{ minWidth: 170 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: P.ink }}>¿Cómo llegas hoy?</div>
+        <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 13, color: P.muted, marginTop: 3 }}>Opcional — tu espacio no te lo exige.</div>
+      </div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", flex: 1, minWidth: 260 }}>
+        {moods.map(([t, score]) => (
+          <button key={t} onClick={() => update({ mood: t, moodScore: score, checkinTouched: true })} style={{ ...chip(P, false), padding: "8px 13px", fontSize: 12.5 }}>{t}</button>
+        ))}
+      </div>
+      <input value={intention} onChange={(e) => setIntention(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { saveIntention(); update({ checkinTouched: true }); } }} onBlur={saveIntention} placeholder="Tu intención de hoy (si quieres)…" className="pill-input" style={{ ...inputSm(P), minWidth: 220, flex: 1 }} />
+      <button onClick={() => update({ skipCheckin: true })} title="Ocultar por hoy" style={{ fontFamily: BODY, fontSize: 13, color: P.muted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", whiteSpace: "nowrap" }}>Ahora no</button>
+    </div>
   );
 }
 
@@ -420,8 +455,11 @@ function ProgressView({ P, profile, premium, onPremium }) {
     })();
   }, []);
 
-  const thisMonth = days.filter((d) => d.date && d.date.slice(0, 7) === dayId().slice(0, 7));
-  const avgMood = thisMonth.length ? (thisMonth.reduce((s, d) => s + (d.moodScore || 3), 0) / thisMonth.length) : 0;
+  const monthDays = days.filter((d) => d.date && d.date.slice(0, 7) === dayId().slice(0, 7));
+  // Un día cuenta como registrado si tuvo actividad real (ánimo, journal o pendientes).
+  const thisMonth = monthDays.filter((d) => d.mood || (d.journal || "").trim() || (d.tasksWork?.length || 0) + (d.tasksPersonal?.length || 0) > 0);
+  const moodDays = thisMonth.filter((d) => d.moodScore);
+  const avgMood = moodDays.length ? (moodDays.reduce((s, d) => s + d.moodScore, 0) / moodDays.length) : 0;
   const totalTasks = thisMonth.reduce((s, d) => s + (d.tasksWork?.length || 0) + (d.tasksPersonal?.length || 0), 0);
   const doneTasks = thisMonth.reduce((s, d) => s + (d.tasksWork?.filter((t) => t.done).length || 0) + (d.tasksPersonal?.filter((t) => t.done).length || 0), 0);
   const journalDays = thisMonth.filter((d) => d.journal && d.journal.trim()).length;
@@ -461,11 +499,11 @@ function ProgressView({ P, profile, premium, onPremium }) {
         ))}
       </div>
 
-      {thisMonth.length > 0 && (
+      {moodDays.length > 0 && (
         <div className="glass tilt-l fade d3" style={{ borderRadius: "40px 70px 40px 70px", padding: 28, marginBottom: 26 }}>
           <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: P.ink, marginBottom: 16 }}>Tu ánimo, día a día</div>
           <div style={{ display: "flex", gap: 6, alignItems: "flex-end", height: 90 }}>
-            {thisMonth.slice().reverse().map((d, i) => (
+            {moodDays.slice().reverse().map((d, i) => (
               <div key={i} title={`${d.date}: ${d.mood}`} style={{ flex: 1, minWidth: 6, height: `${((d.moodScore || 3) / 5) * 100}%`, background: `linear-gradient(180deg, ${P.accent}, ${P.accent}99)`, borderRadius: 100, opacity: 0.4 + ((d.moodScore || 3) / 5) * 0.6, transition: "height .4s ease" }} />
             ))}
           </div>
@@ -520,7 +558,7 @@ function RecoCard({ P, profile, dayData, premium, onPremium }) {
     if (!premium) return onPremium();
     setLoading(true);
     const r = await askClaude(
-      `Soy ${profile.name}, trabajo en ${profile.role}. Hoy me siento "${dayData.mood}" con energía "${dayData.energy}". Lo que más me pesa hoy es: "${reto}". Mi intención de hoy es: "${dayData.intention || "estar presente"}".\n\nDame UNA recomendación concreta, cálida y accionable para hoy que ataque justo eso (máximo 3 líneas). Habla de tú, cercano, con acentos impecables. Sin preámbulo.`,
+      `Soy ${profile.name}, trabajo en ${profile.role}. Hoy me siento "${dayData.mood || "sin registrar"}" con energía "${dayData.energy || "sin registrar"}". Lo que más me pesa hoy es: "${reto}". Mi intención de hoy es: "${dayData.intention || "estar presente"}".\n\nDame UNA recomendación concreta, cálida y accionable para hoy que ataque justo eso (máximo 3 líneas). Habla de tú, cercano, con acentos impecables. Sin preámbulo.`,
       null, 300
     );
     setAiReco(r || "No pude conectar ahorita. Intenta de nuevo en un momento.");
@@ -609,7 +647,7 @@ function JournalWidget({ P, dayData, update, premium, onPremium }) {
   const gen = async () => {
     if (!premium) return onPremium();
     setLoading(true);
-    const r = await askClaude(`Me siento "${dayData.mood}". Dame UN prompt de journaling corto y cálido para hoy. Solo el prompt, máximo 15 palabras, con acentos impecables.`, null, 120);
+    const r = await askClaude(`Me siento "${dayData.mood || "neutral"}". Dame UN prompt de journaling corto y cálido para hoy. Solo el prompt, máximo 15 palabras, con acentos impecables.`, null, 120);
     setPrompt(r || staticP[0]); setLoading(false);
   };
   const shown = prompt || staticP[new Date().getDate() % staticP.length];
@@ -642,7 +680,7 @@ function AffirmWidget({ P, dayData, update }) {
   const affs = ["Hoy elijo avanzar con calma, no con prisa.", "No tengo que hacerlo todo. Solo lo que importa.", "Mi valor no depende de mi lista de pendientes.", "Puedo estar presente en una cosa a la vez."];
   const gen = async () => {
     setLoading(true);
-    const r = await askClaude(`Me siento "${dayData.mood}". Dame UNA afirmación corta, cálida y realista (no cursi). Solo la frase, máximo 12 palabras, sin comillas, con acentos impecables.`, null, 80);
+    const r = await askClaude(`Me siento "${dayData.mood || "neutral"}". Dame UNA afirmación corta, cálida y realista (no cursi). Solo la frase, máximo 12 palabras, sin comillas, con acentos impecables.`, null, 80);
     update({ affirmation: r || affs[Math.floor(Math.random() * affs.length)] }); setLoading(false);
   };
   const shown = dayData.affirmation || affs[new Date().getDate() % affs.length];
@@ -665,7 +703,7 @@ function AssistantWidget({ P, profile, dayData, premium, onPremium }) {
     if (!premium) return onPremium();
     if (!input.trim()) return;
     const userMsg = input.trim(); setInput(""); setMsgs((m) => [...m, { role: "user", text: userMsg }]); setLoading(true);
-    const ctx = `Contexto: ${profile.name}, trabaja en ${profile.role}, hoy se siente ${dayData.mood} con energía ${dayData.energy}. Su reto: ${profile.challenge}.`;
+    const ctx = `Contexto: ${profile.name}, trabaja en ${profile.role}, hoy se siente ${dayData.mood || "sin registrar"} con energía ${dayData.energy || "sin registrar"}. Su reto: ${profile.challenge}.`;
     const r = await askClaude(`${ctx}\n\nMe dice: "${userMsg}"\n\nResponde como su guía cálida y breve (máximo 4 líneas), con acentos impecables.`, null, 400);
     setMsgs((m) => [...m, { role: "ai", text: r || "No pude conectar ahorita." }]); setLoading(false);
   };

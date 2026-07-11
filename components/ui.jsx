@@ -151,9 +151,8 @@ export function GlobalStyles() {
         box-shadow: 0 26px 64px rgba(0,0,0,.2);
       }
 
-      .tilt-l { transform: rotate(-1.2deg); transition: transform .35s ease, box-shadow .35s ease }
-      .tilt-r { transform: rotate(1.2deg); transition: transform .35s ease, box-shadow .35s ease }
-      .tilt-l:hover, .tilt-r:hover { transform: rotate(0deg) translateY(-6px); box-shadow: 0 28px 64px rgba(0,0,0,.13) }
+      .tilt-l, .tilt-r { transition: transform .35s ease, box-shadow .35s ease }
+      .tilt-l:hover, .tilt-r:hover { transform: translateY(-6px); box-shadow: 0 28px 64px rgba(0,0,0,.13) }
       .lift { transition: transform .3s ease, box-shadow .3s ease }
       .lift:hover { transform: translateY(-4px); box-shadow: 0 24px 54px rgba(0,0,0,.12) }
 

@@ -388,7 +388,7 @@ function CapacityCard({ P, profile, project, update }) {
   };
 
   return (
-    <div className="glass-dark floaty" style={{ "--tilt": "0.8deg", borderRadius: "48px 68px 42px 74px", padding: "26px 28px" }}>
+    <div className="glass-dark floaty" style={{ borderRadius: "48px 68px 42px 74px", padding: "26px 28px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <Heart color={P.paperSoft} size={16} />
         <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: P.paperSoft }}>Tu capacidad</div>
@@ -605,7 +605,7 @@ function InspoWall({ P, project, update }) {
           const isDark = item.type === "quote";
           const t = INSPO_TYPES.find((x) => x.key === item.type) || INSPO_TYPES[1];
           return (
-            <div key={i} className={isDark ? "glass-dark lift" : "glass-soft lift"} style={{ breakInside: "avoid", marginBottom: 14, borderRadius: radii[i % radii.length], padding: "18px 20px", transform: `rotate(${i % 2 ? 0.6 : -0.6}deg)`, position: "relative" }}>
+            <div key={i} className={isDark ? "glass-dark lift" : "glass-soft lift"} style={{ breakInside: "avoid", marginBottom: 14, borderRadius: radii[i % radii.length], padding: "18px 20px", position: "relative" }}>
               <button onClick={() => del(i)} style={{ position: "absolute", top: 10, right: 14, background: "none", border: "none", color: isDark ? P.paperSoft : P.muted, cursor: "pointer", fontSize: 14 }}>×</button>
               <div style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: isDark ? P.paperSoft : P.accent, marginBottom: 8 }}>{t.icon} {t.label}</div>
               {item.type === "link" ? (

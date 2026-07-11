@@ -247,15 +247,120 @@ function ProjectBoard({ P, profile, project, update, premium, onPremium }) {
       </div>
 
       {/* Coaching 1-1 */}
-      <div className="glass-dark tilt-l fade d5" style={{ borderRadius: "64px 40px 64px 40px", padding: "28px 32px", display: "flex", gap: 20, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
-        <div style={{ minWidth: 240, flex: 1 }}>
-          <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: P.paperSoft, marginBottom: 8 }}>¿Lo quieres guiado?</div>
-          <div style={{ fontFamily: SERIF, fontSize: 22, color: P.paper, lineHeight: 1.25, marginBottom: 6 }}>Coaching 1-1 con Fer</div>
-          <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 15, color: P.paperSoft, lineHeight: 1.5 }}>Sesiones donde revisamos juntas tu proyecto con tus datos y métricas de la app.</div>
-        </div>
-        <a href="https://instagram.com/theprojectbyfer" target="_blank" rel="noreferrer" style={{ ...primaryBtn(P), textDecoration: "none", display: "inline-block", whiteSpace: "nowrap" }}>Mándame un DM ✦</a>
-      </div>
+      <CoachingCard P={P} project={project} update={update} />
     </>
+  );
+}
+
+// ── Coaching 1-1 con Fer + notas de sesión ──────────────────
+function CoachingCard({ P, project, update }) {
+  const hasCoaching = Boolean(project.coaching);
+  const notes = project.coachingNotes || [];
+  const [adding, setAdding] = useState(false);
+  const [text, setText] = useState("");
+  const [date, setDate] = useState(dayId());
+  const [editing, setEditing] = useState(null); // índice de la nota en edición
+
+  const saveNote = async () => {
+    if (!text.trim()) return;
+    let next;
+    if (editing !== null) {
+      next = notes.map((n, i) => (i === editing ? { ...n, date, text: text.trim() } : n));
+    } else {
+      next = [{ date, text: text.trim(), at: dayId() }, ...notes];
+    }
+    next.sort((a, b) => (a.date < b.date ? 1 : -1));
+    await update({ coachingNotes: next });
+    setText(""); setDate(dayId()); setAdding(false); setEditing(null);
+  };
+
+  const editNote = (i) => {
+    setEditing(i); setText(notes[i].text); setDate(notes[i].date); setAdding(true);
+  };
+
+  const delNote = async (i) => {
+    await update({ coachingNotes: notes.filter((_, j) => j !== i) });
+    if (editing === i) { setEditing(null); setAdding(false); setText(""); }
+  };
+
+  const fmtDate = (d) => {
+    try {
+      return new Date(`${d}T12:00:00`).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" });
+    } catch { return d; }
+  };
+
+  return (
+    <div className="glass-dark tilt-l fade d5" style={{ borderRadius: "64px 40px 64px 40px", padding: "28px 32px" }}>
+      <div style={{ display: "flex", gap: 20, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
+        <div style={{ minWidth: 240, flex: 1 }}>
+          <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: P.paperSoft, marginBottom: 8 }}>{hasCoaching ? "Tu acompañamiento" : "¿Lo quieres guiado?"}</div>
+          <div style={{ fontFamily: SERIF, fontSize: 22, color: P.paper, lineHeight: 1.25, marginBottom: 6 }}>Coaching 1-1 con Fer</div>
+          <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 15, color: P.paperSoft, lineHeight: 1.5 }}>
+            {hasCoaching
+              ? "Tus notas de cada sesión viven aquí — llega a la siguiente con todo fresco."
+              : "Sesiones donde revisamos juntas tu proyecto con tus datos y métricas de la app."}
+          </div>
+        </div>
+        {!hasCoaching && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-end" }}>
+            <a href="https://instagram.com/theprojectbyfer" target="_blank" rel="noreferrer" style={{ ...primaryBtn(P), textDecoration: "none", display: "inline-block", whiteSpace: "nowrap" }}>Mándame un DM ✦</a>
+            <button onClick={() => update({ coaching: true })} style={{ fontFamily: BODY, fontSize: 12.5, color: P.paperSoft, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+              Ya tengo coaching con Fer →
+            </button>
+          </div>
+        )}
+        {hasCoaching && !adding && (
+          <button onClick={() => { setAdding(true); setEditing(null); setText(""); setDate(dayId()); }} style={{ ...primaryBtn(P), whiteSpace: "nowrap" }}>+ Nota de sesión</button>
+        )}
+      </div>
+
+      {hasCoaching && (
+        <div style={{ marginTop: 20 }}>
+          {adding && (
+            <div className="fade" style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "28px 40px 28px 40px", padding: "16px 18px", marginBottom: 14 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: P.paperSoft }}>{editing !== null ? "Editar nota" : "Sesión del"}</span>
+                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ fontFamily: BODY, fontSize: 13, color: P.paper, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.16)", borderRadius: 100, padding: "5px 12px", colorScheme: "dark" }} />
+              </div>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                autoFocus
+                placeholder="Acuerdos, aprendizajes, tareas para la próxima sesión…"
+                style={{ width: "100%", minHeight: 90, fontFamily: BODY, fontSize: 14.5, lineHeight: 1.65, color: P.paper, background: "transparent", border: "none", outline: "none", resize: "vertical" }}
+              />
+              <div style={{ display: "flex", gap: 10, marginTop: 8, alignItems: "center" }}>
+                <button onClick={saveNote} disabled={!text.trim()} style={{ ...aiMini(P), background: text.trim() ? P.accent : "transparent", color: text.trim() ? P.card : P.paperSoft, borderColor: text.trim() ? P.accent : "rgba(255,255,255,0.2)" }}>Guardar nota</button>
+                <button onClick={() => { setAdding(false); setEditing(null); setText(""); }} style={{ fontFamily: BODY, fontSize: 12.5, color: P.paperSoft, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Cancelar</button>
+              </div>
+            </div>
+          )}
+
+          {notes.length === 0 && !adding && (
+            <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 14, color: P.paperSoft }}>Aún no hay notas — después de tu próxima sesión, guarda aquí lo importante.</div>
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {notes.map((n, i) => (
+              <div key={i} className="fade" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: i % 2 ? "36px 22px 36px 22px" : "22px 36px 22px 36px", padding: "14px 18px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
+                  <span style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 13.5, color: P.paperSoft }}>Sesión · {fmtDate(n.date)}</span>
+                  <span style={{ display: "flex", gap: 12 }}>
+                    <button onClick={() => editNote(i)} style={{ fontSize: 11.5, color: P.paperSoft, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: BODY }}>editar</button>
+                    <button onClick={() => delNote(i)} style={{ fontSize: 11.5, color: P.paperSoft, background: "none", border: "none", cursor: "pointer", fontFamily: BODY, opacity: 0.7 }}>✕</button>
+                  </span>
+                </div>
+                <div style={{ fontFamily: BODY, fontSize: 14, lineHeight: 1.65, color: P.paper, whiteSpace: "pre-wrap" }}>{n.text}</div>
+              </div>
+            ))}
+          </div>
+
+          <button onClick={() => update({ coaching: false })} style={{ marginTop: 14, fontFamily: BODY, fontSize: 11.5, color: P.paperSoft, opacity: 0.7, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+            Ya no tengo coaching
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 

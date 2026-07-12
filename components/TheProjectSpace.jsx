@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { store, getUid } from "@/lib/store";
 import { askClaude } from "@/lib/ai";
 import ProjectView from "@/components/MiProyecto";
+import RetoView from "@/components/Reto";
+import { retoActivo } from "@/lib/retos";
 import {
   PALETTES, SERIF, BODY, ITALIC, dayId, cssVars,
   Heart, Grain, Blobs, GlobalStyles,
@@ -334,6 +336,7 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <div style={{ display: "flex", background: P.bg + "99", borderRadius: 100, padding: 3 }}>
               <button onClick={() => setView("hoy")} style={tabBtn(P, view === "hoy")}>Hoy</button>
+              <button onClick={() => setView("reto")} style={tabBtn(P, view === "reto")}>Reto</button>
               <button onClick={() => setView("proyecto")} style={tabBtn(P, view === "proyecto")}>Mi proyecto</button>
               <button onClick={() => setView("progreso")} style={tabBtn(P, view === "progreso")}>Mi progreso</button>
             </div>
@@ -344,7 +347,8 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
         </div>
       </div>
 
-      {view === "hoy" && <TodayView P={P} profile={profile} dayData={dayData} update={update} premium={premium} onPremium={onPremium} onNewDay={onNewDay} />}
+      {view === "hoy" && <TodayView P={P} profile={profile} dayData={dayData} update={update} premium={premium} onPremium={onPremium} onNewDay={onNewDay} onReto={() => setView("reto")} />}
+      {view === "reto" && <RetoView P={P} />}
       {view === "proyecto" && <ProjectView P={P} profile={profile} premium={premium} onPremium={onPremium} />}
       {view === "progreso" && <ProgressView P={P} profile={profile} premium={premium} onPremium={onPremium} />}
 
@@ -376,7 +380,7 @@ function PaletteModal({ P, current, onPick, onClose }) {
   );
 }
 
-function TodayView({ P, profile, dayData, update, premium, onPremium, onNewDay }) {
+function TodayView({ P, profile, dayData, update, premium, onPremium, onNewDay, onReto }) {
   return (
     <>
       {/* Hero asimétrico: intención libre a la izquierda, reco flotante a la derecha */}
@@ -401,6 +405,11 @@ function TodayView({ P, profile, dayData, update, premium, onPremium, onNewDay }
           <QuickCheckin P={P} dayData={dayData} update={update} />
         </div>
       )}
+
+      {/* Banner del reto del mes */}
+      <div className="fade d3" style={{ maxWidth: 1120, margin: "0 auto", padding: "18px 24px 0" }}>
+        <RetoBanner P={P} onReto={onReto} />
+      </div>
 
       {/* Bento asimétrico */}
       <div className="bento" style={{ maxWidth: 1120, margin: "0 auto", padding: "30px 24px 130px" }}>
@@ -433,6 +442,44 @@ function QuickCheckin({ P, dayData, update }) {
       </div>
       <input value={intention} onChange={(e) => setIntention(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { saveIntention(); update({ checkinTouched: true }); } }} onBlur={saveIntention} placeholder="Tu intención de hoy (si quieres)…" className="pill-input" style={{ ...inputSm(P), minWidth: 220, flex: 1 }} />
       <button onClick={() => update({ skipCheckin: true })} title="Ocultar por hoy" style={{ fontFamily: BODY, fontSize: 13, color: P.muted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", whiteSpace: "nowrap" }}>Ahora no</button>
+    </div>
+  );
+}
+
+// ── Banner del reto del mes (invita o muestra el avance) ────
+function RetoBanner({ P, onReto }) {
+  const reto = retoActivo();
+  const [done, setDone] = useState(null);
+  const total = reto.semanas.reduce((n, s) => n + s.dias.length, 0);
+
+  useEffect(() => {
+    (async () => {
+      const saved = (await store.get(`tp:reto:${reto.id}`)) || { days: {} };
+      setDone(Object.values(saved.days || {}).filter((d) => d.done).length);
+    })();
+  }, [reto.id]);
+
+  const empezado = done !== null && done > 0;
+  const terminado = done === total;
+
+  return (
+    <div onClick={onReto} className="glass-dark lift" style={{ borderRadius: "24px 48px 24px 48px", padding: "16px 24px", display: "flex", gap: 16, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", cursor: "pointer" }}>
+      <div style={{ display: "flex", gap: 14, alignItems: "center", minWidth: 220, flex: 1 }}>
+        <Heart size={13} color={P.accent2} />
+        <div>
+          <div style={{ fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", color: P.paperSoft }}>El reto del mes</div>
+          <div style={{ fontFamily: SERIF, fontSize: 19, color: P.paper, lineHeight: 1.2 }}>
+            {reto.nombre} <span style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 14, color: P.paperSoft }}>· {reto.subtitulo}</span>
+          </div>
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        {empezado && !terminado && <span style={{ fontFamily: BODY, fontSize: 13, color: P.paperSoft }}>{done}/{total} días</span>}
+        {terminado && <span style={{ fontFamily: BODY, fontSize: 13, color: P.paperSoft }}>Completado ✓</span>}
+        <span style={{ fontFamily: BODY, fontSize: 12.5, fontWeight: 600, color: P.card, background: P.accent, borderRadius: 100, padding: "8px 16px", boxShadow: `0 6px 16px ${P.accent}44`, whiteSpace: "nowrap" }}>
+          {terminado ? "Revívelo →" : empezado ? "Continuar →" : "Únete al reto →"}
+        </span>
+      </div>
     </div>
   );
 }

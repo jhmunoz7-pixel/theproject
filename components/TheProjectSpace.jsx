@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { store, getUid } from "@/lib/store";
 import { askClaude } from "@/lib/ai";
 import ProjectView from "@/components/MiProyecto";
+import RetoView from "@/components/RetoDelMes";
 import {
   PALETTES, SERIF, BODY, ITALIC, dayId, cssVars,
   Heart, Grain, Blobs, GlobalStyles,
@@ -334,6 +335,7 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <div style={{ display: "flex", background: P.bg + "99", borderRadius: 100, padding: 3 }}>
               <button onClick={() => setView("hoy")} style={tabBtn(P, view === "hoy")}>Hoy</button>
+              <button onClick={() => setView("reto")} style={tabBtn(P, view === "reto")}>Reto ✦</button>
               <button onClick={() => setView("proyecto")} style={tabBtn(P, view === "proyecto")}>Mi proyecto</button>
               <button onClick={() => setView("progreso")} style={tabBtn(P, view === "progreso")}>Mi progreso</button>
             </div>
@@ -345,6 +347,7 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
       </div>
 
       {view === "hoy" && <TodayView P={P} profile={profile} dayData={dayData} update={update} premium={premium} onPremium={onPremium} onNewDay={onNewDay} />}
+      {view === "reto" && <RetoView P={P} />}
       {view === "proyecto" && <ProjectView P={P} profile={profile} premium={premium} onPremium={onPremium} />}
       {view === "progreso" && <ProgressView P={P} profile={profile} premium={premium} onPremium={onPremium} />}
 

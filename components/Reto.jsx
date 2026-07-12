@@ -2,19 +2,28 @@
 
 import { useState, useEffect } from "react";
 import { store } from "@/lib/store";
-import { retoActivo } from "@/lib/retos";
+import { retoActivo, fetchRetoActivo } from "@/lib/retos";
 import { SERIF, BODY, ITALIC, dayId, Heart, aiMini } from "@/components/ui";
 
 // ═══════════════════════════════════════════════════════════
-//  RETO DEL MES — la guía del reto vigente (lib/retos.js),
-//  con progreso y respuestas por usuaria.
+//  RETO DEL MES — el reto vigente viene de Supabase (tabla
+//  `challenges`, cambiable mes con mes sin tocar código) con
+//  lib/retos.js como respaldo. Progreso y respuestas por usuaria.
 // ═══════════════════════════════════════════════════════════
 
 export default function RetoView({ P }) {
-  const reto = retoActivo();
+  const [reto, setReto] = useState(retoActivo()); // respaldo inmediato; Supabase lo reemplaza si hay reto activo
   const key = `tp:reto:${reto.id}`;
   const [data, setData] = useState(null); // { days: { n: { done, note, at } } }
   const [open, setOpen] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const remoto = await fetchRetoActivo();
+      if (remoto && remoto.id !== reto.id) setReto(remoto);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -23,6 +32,7 @@ export default function RetoView({ P }) {
       const firstPending = allDays(reto).find((d) => !saved.days?.[d.n]?.done);
       setOpen(firstPending ? firstPending.n : null);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   const save = async (next) => {

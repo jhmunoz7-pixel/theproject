@@ -14,6 +14,7 @@ create table if not exists public.challenges (
   slug       text        not null unique,
   title      text        not null,
   subtitle   text,
+  intro      text,
   hashtag    text,
   starts_on  date        not null default now(),
   active     boolean     not null default false,
@@ -31,11 +32,12 @@ create policy "challenges_select_active"
   using (active = true);
 
 -- Semilla: el reto AWAKE · 21 días
-insert into public.challenges (slug, title, subtitle, hashtag, starts_on, active, phases, days, closing)
+insert into public.challenges (slug, title, subtitle, intro, hashtag, starts_on, active, phases, days, closing)
 values (
-  'awake',
+  'awake-21',
   'AWAKE',
-  '21 días para despertar',
+  'tu guía de 21 días',
+  '21 días para despertar: mirar hacia adentro, encontrar claridad y dar el primer paso. Un prompt al día, cinco minutos, cero filtros.',
   '#Awake21',
   '2026-07-01',
   true,

@@ -1571,6 +1571,15 @@ export default function Landing() {
         @keyframes tp-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         html { scroll-behavior: smooth; }
         @media (max-width: 820px) { .tp-nav-links { display: none !important; } }
+        .fer-grid { display: flex; gap: 56px; align-items: center; max-width: 1080px; margin: 0 auto; }
+        .fer-media { flex: 0 0 42%; }
+        .fer-media img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 28px; display: block; box-shadow: 0 24px 60px rgba(51,55,44,.18); }
+        .fer-body { flex: 1 1 0; min-width: 0; }
+        @media (max-width: 820px) {
+          .fer-grid { flex-direction: column; gap: 34px; }
+          .fer-media { flex: none; width: 100%; max-width: 360px; }
+          .fer-body { text-align: center; }
+        }
         @media (prefers-reduced-motion: reduce) {
           * { animation: none !important; transition: none !important; }
         }
@@ -1788,6 +1797,41 @@ export default function Landing() {
         </Reveal>
         <Reveal delay={120}>
           <MonthTimeline />
+        </Reveal>
+      </section>
+
+      {/* ── CONOCE A FER (bio de la fundadora) ── */}
+      <section id="conoce-a-fer" style={{ padding: "110px 28px" }}>
+        <Reveal>
+          <div className="fer-grid">
+            <div className="fer-media">
+              <img
+                src="/fer.jpg"
+                alt="Fer, fundadora de The Project"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div className="fer-body">
+              <div style={eyebrow}>Fundadora · The Project</div>
+              <h2 style={{ ...h2, marginBottom: 20 }}>Conoce a Fer</h2>
+              <p style={{ fontFamily: ACCENT, fontStyle: "italic", fontSize: 21, color: C.olive, margin: "0 0 20px" }}>
+                Hola, soy Fer 👋
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 560 }}>
+                {[
+                  "Durante más de 10 años he construido mi carrera en marketing y alianzas para empresas de tecnología en toda Latinoamérica — hoy lidero marketing y partnerships para LATAM en WeWork, y en el camino me formé en storytelling y liderazgo en lugares como Northwestern University y el Tec de Monterrey.",
+                  "Y aun así, con todo “funcionando bien”, un día me hice la pregunta que quizás tú también te has hecho: ¿es esta la vida que yo quiero?",
+                  "The Project nació justo de ahí. De entender que valemos mucho más que nuestra lista de pendientes, y que crecer no tiene por qué sentirse en soledad. Quise crear el espacio que a mí me hubiera encantado tener: uno donde puedas pensar distinto, rodearte de otras mujeres que también lo dan todo, y construir la vida que de verdad quieres — a tu manera.",
+                  "Fuera de aquí me vas a encontrar entrenando (todavía no me creo que corrí un medio maratón 🏃‍♀️), con mi familia, mis amigas y mi novio, o disfrutando una copa de vino blanco mientras planeo el siguiente reto. Porque para mí esto no es solo trabajo: es la forma en la que quiero vivir, y ahora quiero compartirla contigo.",
+                ].map((t, i) => (
+                  <p key={i} style={{ fontFamily: BODY, fontSize: 15.5, lineHeight: 1.75, color: C.ink, opacity: 0.82, margin: 0 }}>
+                    {t}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
         </Reveal>
       </section>
 

@@ -1,15 +1,21 @@
-# The Project · Space
+# The Project
 
-Plataforma SaaS anti-burnout freemium para mujeres en corporativo LATAM, parte de
-[The Project by Fer](https://instagram.com/theprojectbyfer). Junta pendientes,
-journaling y bienestar en un solo espacio diario.
+Plataforma de [The Project by Fer](https://instagram.com/theprojectbyfer)
+(**Find · Elevate · Rise**): el espacio donde las mujeres que lo tienen todo en
+papel descubren qué quieren de verdad — y lo construyen. El ecosistema junta la
+app (espacio diario), mentoring con método, networking consciente, el reto AWAKE
+de 21 días y una comunidad de mujeres.
 
-Flujo: **landing con registro** (`/`) → **onboarding** (una vez) → **check-in diario**
-(se adapta a mañana/tarde/noche) → **dashboard** flotante con widgets (`/espacio`) →
-pestaña **Mi progreso** con métricas del mes.
+## Rutas
 
-Diseño: glassmorphism, blobs flotantes, layout asimétrico, pop-ups flotantes
-(pausa consciente, Premium), fuentes Fraunces + Work Sans, 10 paletas a elegir.
+- `/` — **Landing del ecosistema**: hero con hook rotativo, quiz interactivo
+  "¿te suena?", pilares de marca (Mindset · Mentoring · Networking), tarjetas
+  del ecosistema, carrusel de la app, "así se ve tu mes", reto AWAKE, frases de
+  mindset, testimonios, membresía (app gratis / membresía fundadoras $349 MXN /
+  add-on IA $10 USD) y formulario para apartar lugar (tabla `leads` en Supabase).
+  Identidad del brand guideline: Gloock + Crimson Pro + Work Sans, paleta
+  tinta/olivo/marfil, cintas marquee y transiciones al hacer scroll.
+- `/espacio` — la app (onboarding → check-in diario → dashboard → Mi progreso).
 
 ## Stack
 
@@ -50,8 +56,17 @@ responden "no configurado". Para la experiencia completa, llena `.env.local`.
 ## Supabase (persistencia real)
 
 1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. Corre las migraciones de `supabase/migrations/` en el **SQL Editor**, en orden
-   (`user_kv` con Row Level Security y `registrations` para los correos de la landing).
+2. Corre las migraciones de `supabase/migrations/` en el **SQL Editor**, en orden:
+   `0001_init.sql` (tabla `user_kv` con Row Level Security), `0002_registrations.sql`
+   (correos de registro), `0002_leads.sql` (tabla `leads` para el formulario de la
+   landing — inserción pública, lectura solo desde el dashboard de Supabase) y
+   `0003_challenges.sql` (tabla `challenges` con el **reto del mes** — siembra AWAKE).
+
+> **Reto del mes.** La app muestra en la pestaña "Reto ✦" el reto con
+> `active = true` más reciente de la tabla `challenges` (hoy: AWAKE · 21 días).
+> Para cambiarlo mes con mes, inserta la fila del reto nuevo con `active = true`
+> y pon `active = false` al anterior — sin tocar código. El progreso de cada
+> usuaria (días completados y sus respuestas) se guarda en su `user_kv` privado.
 3. **Authentication → Providers → Anonymous sign-ins: ON.** La app usa sesión
    anónima para que cada navegador tenga su propio espacio persistente.
 4. Copia **Project URL** y **anon public key** a tus variables de entorno.

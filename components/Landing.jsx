@@ -1820,7 +1820,7 @@ export default function Landing() {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 560 }}>
                 {[
-                  "Durante más de 10 años he construido mi carrera en marketing y alianzas para empresas de tecnología en toda Latinoamérica — hoy lidero marketing y partnerships para LATAM en WeWork, y en el camino me formé en storytelling y liderazgo en lugares como Northwestern University y el Tec de Monterrey.",
+                  "Durante más de 10 años he construido mi carrera en marketing y alianzas para empresas de tecnología en toda Latinoamérica — hoy lidero marketing y partnerships para LATAM en una empresa global de tecnología, y en el camino me formé en storytelling y liderazgo en lugares como Northwestern University y el Tec de Monterrey.",
                   "Y aun así, con todo “funcionando bien”, un día me hice la pregunta que quizás tú también te has hecho: ¿es esta la vida que yo quiero?",
                   "The Project nació justo de ahí. De entender que valemos mucho más que nuestra lista de pendientes, y que crecer no tiene por qué sentirse en soledad. Quise crear el espacio que a mí me hubiera encantado tener: uno donde puedas pensar distinto, rodearte de otras mujeres que también lo dan todo, y construir la vida que de verdad quieres — a tu manera.",
                   "Fuera de aquí me vas a encontrar entrenando (todavía no me creo que corrí un medio maratón 🏃‍♀️), con mi familia, mis amigas y mi novio, o disfrutando una copa de vino blanco mientras planeo el siguiente reto. Porque para mí esto no es solo trabajo: es la forma en la que quiero vivir, y ahora quiero compartirla contigo.",

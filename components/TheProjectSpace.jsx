@@ -114,8 +114,8 @@ export default function TheProjectSpace() {
     } catch {}
     setPremium(true); setShowPremium(false); await store.set("tp:premium", true);
   };
-  const updatePalette = async (paletteKey) => {
-    const p = { ...profile, paletteKey };
+  const updateProfile = async (patch) => {
+    const p = { ...profile, ...patch };
     setProfile(p); await store.set("tp:profile", p);
   };
   const resetAll = async () => {
@@ -143,7 +143,7 @@ export default function TheProjectSpace() {
       <div style={{ position: "relative", zIndex: 2 }}>
         {phase === "onboard" && <Onboarding onDone={completeOnboard} initialName={signupName} />}
         {phase === "morning" && <MorningCheckin P={P} profile={profile} onDone={completeMorning} />}
-        {phase === "dashboard" && <Dashboard P={P} profile={profile} dayData={dayData} saveDay={saveDay} premium={premium} onPremium={() => setShowPremium(true)} onNewDay={() => setPhase("morning")} onReset={resetAll} onPalette={updatePalette} />}
+        {phase === "dashboard" && <Dashboard P={P} profile={profile} dayData={dayData} saveDay={saveDay} premium={premium} onPremium={() => setShowPremium(true)} onNewDay={() => setPhase("morning")} onReset={resetAll} onProfile={updateProfile} />}
       </div>
       {phase === "dashboard" && <PauseBubble P={P} premium={premium} onPremium={() => setShowPremium(true)} />}
       {showPremium && <PremiumModal P={P} onClose={() => setShowPremium(false)} onBuy={goPremium} />}
@@ -167,12 +167,18 @@ function Onboarding({ onDone, initialName = "" }) {
   const [q, setQ] = useState(0);
   const [name, setName] = useState(initialName);
   const [role, setRole] = useState("");
+  const [workMode, setWorkMode] = useState("");
   const [paletteKey, setPaletteKey] = useState("");
   const [challenge, setChallenge] = useState("");
   const roles = ["Marketing", "Finanzas", "Ventas", "Producto / Tech", "Consultoría", "Recursos Humanos", "Diseño / Creativo", "Emprendo lo mío", "Otra"];
+  const workModes = [
+    ["corp", "Trabajo en una empresa", "Tu espacio tendrá tu cuadro de chamba y tu tiempo para ti."],
+    ["both", "Trabajo y construyo lo mío", "Chamba, tu proyecto y tiempo para ti — todo en su lugar."],
+    ["own", "Estoy 100% en mi proyecto", "Tu proyecto es tu trabajo — sin cuadros de más."],
+  ];
   const challenges = ["Me siento abrumada", "No logro desconectar", "Quiero organizarme mejor", "Busco más claridad", "Estoy al borde del burnout"];
-  const canNext = [name.trim(), role, paletteKey, challenge][q];
-  const next = () => { if (q < 3) setQ(q + 1); else onDone({ name: name.trim(), role, paletteKey, challenge }); };
+  const canNext = [name.trim(), role, workMode, paletteKey, challenge][q];
+  const next = () => { if (q < 4) setQ(q + 1); else onDone({ name: name.trim(), role, workMode, paletteKey, challenge }); };
   const previewP = (paletteKey && PALETTES[paletteKey]) || PALETTES.original;
 
   return (
@@ -180,7 +186,7 @@ function Onboarding({ onDone, initialName = "" }) {
       <Blobs P={previewP} />
       <div className="glass fade" key={q} style={{ maxWidth: 640, width: "100%", borderRadius: q % 2 ? "84px 52px 84px 52px" : "52px 84px 52px 84px", padding: "clamp(30px, 5.5vw, 52px)", textAlign: "center", position: "relative", zIndex: 2 }}>
         <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 38 }}>
-          {[0, 1, 2, 3].map((i) => <div key={i} style={{ width: i === q ? 30 : 8, height: 8, borderRadius: 100, background: i <= q ? previewP.accent : previewP.line, transition: "all 0.3s" }} />)}
+          {[0, 1, 2, 3, 4].map((i) => <div key={i} style={{ width: i === q ? 30 : 8, height: 8, borderRadius: 100, background: i <= q ? previewP.accent : previewP.line, transition: "all 0.3s" }} />)}
         </div>
 
         {q === 0 && (
@@ -216,6 +222,20 @@ function Onboarding({ onDone, initialName = "" }) {
         )}
         {q === 2 && (
           <>
+            <H1 P={previewP}>¿Cómo se ve tu trabajo hoy?</H1>
+            <Sub P={previewP}>Con esto armamos tu espacio con los cuadros que sí usas. Lo puedes cambiar cuando quieras.</Sub>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {workModes.map(([key, label, hint]) => (
+                <button key={key} onClick={() => setWorkMode(key)} style={{ ...chip(previewP, workMode === key), justifyContent: "center", flexDirection: "column", gap: 3, padding: "14px 20px" }}>
+                  <span>{label}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 400, opacity: 0.75, fontStyle: "italic", fontFamily: ITALIC }}>{hint}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        {q === 3 && (
+          <>
             <H1 P={previewP}>Elige tu vibra.</H1>
             <Sub P={previewP}>El color de tu espacio. Puedes cambiarlo después.</Sub>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center", maxHeight: "46vh", overflowY: "auto", padding: "4px 4px 8px" }}>
@@ -230,7 +250,7 @@ function Onboarding({ onDone, initialName = "" }) {
             </div>
           </>
         )}
-        {q === 3 && (
+        {q === 4 && (
           <>
             <H1 P={previewP}>Última cosa.</H1>
             <Sub P={previewP}>¿Qué es lo que más te pesa ahorita?</Sub>
@@ -241,7 +261,7 @@ function Onboarding({ onDone, initialName = "" }) {
         )}
 
         <div style={{ marginTop: 40 }}>
-          <button onClick={next} disabled={!canNext} style={primaryBtn(previewP, !canNext)}>{q < 3 ? "Continuar →" : "Crear mi espacio ✦"}</button>
+          <button onClick={next} disabled={!canNext} style={primaryBtn(previewP, !canNext)}>{q < 4 ? "Continuar →" : "Crear mi espacio ✦"}</button>
         </div>
       </div>
       <GlobalStyles />
@@ -315,7 +335,7 @@ function MorningCheckin({ P, profile, onDone }) {
 }
 
 // ═══ DASHBOARD ═══
-function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay, onReset, onPalette }) {
+function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay, onReset, onProfile }) {
   const [view, setView] = useState("hoy");
   const [showPalettes, setShowPalettes] = useState(false);
   const update = (patch) => saveDay({ ...dayData, ...patch });
@@ -347,18 +367,19 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
         </div>
       </div>
 
-      {view === "hoy" && <TodayView P={P} profile={profile} dayData={dayData} update={update} premium={premium} onPremium={onPremium} onNewDay={onNewDay} onReto={() => setView("reto")} />}
+      {view === "hoy" && <TodayView P={P} profile={profile} dayData={dayData} update={update} premium={premium} onPremium={onPremium} onNewDay={onNewDay} onReto={() => setView("reto")} onProyecto={() => setView("proyecto")} />}
       {view === "reto" && <RetoView P={P} />}
       {view === "proyecto" && <ProjectView P={P} profile={profile} premium={premium} onPremium={onPremium} />}
       {view === "progreso" && <ProgressView P={P} profile={profile} premium={premium} onPremium={onPremium} />}
 
-      {showPalettes && <PaletteModal P={P} current={profile.paletteKey} onPick={(k) => { onPalette(k); setShowPalettes(false); }} onClose={() => setShowPalettes(false)} />}
+      {showPalettes && <PaletteModal P={P} current={profile.paletteKey} profile={profile} onProfile={onProfile} onPick={(k) => { onProfile({ paletteKey: k }); setShowPalettes(false); }} onClose={() => setShowPalettes(false)} />}
     </div>
   );
 }
 
 // ── Pop-up flotante: cambiar la vibra (paleta) ──────────────
-function PaletteModal({ P, current, onPick, onClose }) {
+function PaletteModal({ P, current, profile, onProfile, onPick, onClose }) {
+  const showWork = profile?.workMode !== "own";
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(25,20,18,0.35)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, zIndex: 100 }}>
       <div onClick={(e) => e.stopPropagation()} className="glass fade" style={{ borderRadius: "52px 80px 52px 80px", maxWidth: 560, width: "100%", padding: "40px 36px", textAlign: "center", maxHeight: "86vh", overflowY: "auto" }}>
@@ -374,13 +395,26 @@ function PaletteModal({ P, current, onPick, onClose }) {
             </button>
           ))}
         </div>
+        <div style={{ marginTop: 26, paddingTop: 20, borderTop: `1px dashed ${P.line}` }}>
+          <div style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: P.muted, marginBottom: 10 }}>Tus cuadros</div>
+          <button onClick={() => onProfile({ workMode: showWork ? "own" : "corp" })} className="glass-soft" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, width: "100%", border: "none", borderRadius: 100, padding: "12px 18px", cursor: "pointer", fontFamily: BODY, textAlign: "left" }}>
+            <span style={{ fontSize: 13.5, color: P.ink }}>
+              Pendientes de chamba
+              <span style={{ display: "block", fontSize: 11.5, color: P.muted, fontStyle: "italic", fontFamily: ITALIC, marginTop: 2 }}>{showWork ? "Visible — para tu trabajo en empresa." : "Oculto — tu proyecto es tu trabajo."}</span>
+            </span>
+            <span style={{ width: 40, height: 22, borderRadius: 100, background: showWork ? P.accent : P.line, position: "relative", flexShrink: 0, transition: "background .25s" }}>
+              <span style={{ position: "absolute", top: 2, left: showWork ? 20 : 2, width: 18, height: 18, borderRadius: "50%", background: P.card, transition: "left .25s" }} />
+            </span>
+          </button>
+        </div>
         <button onClick={onClose} style={{ fontFamily: BODY, fontSize: 13, color: P.muted, background: "none", border: "none", cursor: "pointer", marginTop: 22, textDecoration: "underline" }}>Cerrar</button>
       </div>
     </div>
   );
 }
 
-function TodayView({ P, profile, dayData, update, premium, onPremium, onNewDay, onReto }) {
+function TodayView({ P, profile, dayData, update, premium, onPremium, onNewDay, onReto, onProyecto }) {
+  const showWork = profile.workMode !== "own";
   return (
     <>
       {/* Hero asimétrico: intención libre a la izquierda, reco flotante a la derecha */}
@@ -413,8 +447,9 @@ function TodayView({ P, profile, dayData, update, premium, onPremium, onNewDay, 
 
       {/* Bento asimétrico */}
       <div className="bento" style={{ maxWidth: 1120, margin: "0 auto", padding: "30px 24px 130px" }}>
-        <div className="w3 fade d2"><TasksWidget P={P} tilt="tilt-l" radius="34px 62px 40px 58px" label="Pendientes laborales" hint="Aquí van tus pendientes del trabajo." k="tasksWork" dayData={dayData} update={update} premium={premium} onPremium={onPremium} profile={profile} kind="work" /></div>
-        <div className="w3 push fade d3"><TasksWidget P={P} tilt="tilt-r" radius="58px 36px 62px 34px" label="Pendientes personales" hint="Aquí va todo lo tuyo, fuera del trabajo." k="tasksPersonal" dayData={dayData} update={update} premium={premium} onPremium={onPremium} profile={profile} kind="personal" /></div>
+        {showWork && <div className="w3 fade d2"><TasksWidget P={P} tilt="tilt-l" radius="34px 62px 40px 58px" label="Chamba" hint="Tus pendientes del trabajo." k="tasksWork" dayData={dayData} update={update} premium={premium} onPremium={onPremium} profile={profile} kind="work" /></div>}
+        <div className={showWork ? "w3 push fade d3" : "w3 fade d2"}><TasksWidget P={P} tilt={showWork ? "tilt-r" : "tilt-l"} radius="58px 36px 62px 34px" label="Para ti" hint="Yoga, leer, tiempo para ti — lo que te recarga." k="tasksPersonal" dayData={dayData} update={update} premium={premium} onPremium={onPremium} profile={profile} kind="personal" /></div>
+        <div className={showWork ? "w6 fade d3" : "w3 push fade d3"}><ProjectTodayWidget P={P} wide={showWork} onProyecto={onProyecto} /></div>
         <div className="w4 fade d3"><JournalWidget P={P} dayData={dayData} update={update} premium={premium} onPremium={onPremium} /></div>
         <div className="w2 fade d4"><AffirmWidget P={P} dayData={dayData} update={update} premium={premium} onPremium={onPremium} /></div>
         <div className="w6 fade d5"><AssistantWidget P={P} profile={profile} dayData={dayData} premium={premium} onPremium={onPremium} /></div>
@@ -480,6 +515,73 @@ function RetoBanner({ P, onReto }) {
           {terminado ? "Revívelo →" : empezado ? "Continuar →" : "Únete al reto →"}
         </span>
       </div>
+    </div>
+  );
+}
+
+// ── Hoy en tu proyecto: espejo del plan de Mi proyecto ──────
+// Misma fuente de datos (tp:projects) — palomear aquí palomea allá.
+function ProjectTodayWidget({ P, wide, onProyecto }) {
+  const [projects, setProjects] = useState(null);
+
+  useEffect(() => {
+    (async () => setProjects((await store.get("tp:projects")) || []))();
+  }, []);
+
+  const project = projects?.[0];
+  const tasks = project?.tasks || [];
+  const pending = tasks.filter((t) => !t.done).slice(0, 3);
+  const done = tasks.filter((t) => t.done).length;
+
+  const toggle = async (task) => {
+    const list = projects.map((p, i) => (i === 0 ? { ...p, tasks: p.tasks.map((t) => (t === task ? { ...t, done: !t.done } : t)) } : p));
+    setProjects(list);
+    await store.set("tp:projects", list);
+  };
+
+  if (projects === null) return <div className="glass" style={{ borderRadius: "34px 58px 34px 58px", padding: 24, color: P.muted, fontSize: 13 }}>cargando…</div>;
+
+  // Sin proyecto aún: invitación
+  if (!project) {
+    return (
+      <div onClick={onProyecto} className="glass lift" style={{ borderRadius: wide ? "24px 48px 24px 48px" : "34px 58px 34px 58px", padding: wide ? "18px 24px" : 24, cursor: "pointer", display: "flex", gap: 14, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
+        <div style={{ minWidth: 200, flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: P.ink, marginBottom: 3 }}>Tu proyecto</div>
+          <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 14, color: P.muted }}>Eso que traes en la cabeza también merece su espacio.</div>
+        </div>
+        <span style={{ fontFamily: BODY, fontSize: 12.5, fontWeight: 600, color: P.card, background: P.accent, borderRadius: 100, padding: "9px 16px", boxShadow: `0 6px 16px ${P.accent}44`, whiteSpace: "nowrap" }}>Crear mi proyecto ✦</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass" style={{ borderRadius: wide ? "24px 48px 24px 48px" : "58px 34px 58px 34px", padding: wide ? "18px 24px" : 24 }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: pending.length ? 10 : 0 }}>
+        <div>
+          <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: P.ink }}>Hoy en tu proyecto</span>
+          <span style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 13.5, color: P.accent, marginLeft: 8 }}>· {project.name}</span>
+        </div>
+        <button onClick={onProyecto} style={{ fontFamily: BODY, fontSize: 12.5, color: P.muted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>Ver todo mi plan →</button>
+      </div>
+
+      {pending.length === 0 ? (
+        <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 14, color: P.muted, marginTop: 6 }}>
+          {tasks.length ? "Plan completado ✦ Ve a tu proyecto por los siguientes pasos." : "Tu plan está vacío — agrega tu primera tarea en Mi proyecto."}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: wide ? "row" : "column", gap: wide ? 10 : 0, flexWrap: "wrap" }}>
+          {pending.map((t, i) => (
+            <div key={i} onClick={() => toggle(t)} className={wide ? "glass-soft" : ""} style={wide
+              ? { display: "flex", alignItems: "center", gap: 9, padding: "9px 15px", borderRadius: 100, cursor: "pointer", flex: "1 1 220px", minWidth: 0 }
+              : { display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < pending.length - 1 ? `1px dashed ${P.line}` : "none", cursor: "pointer" }}>
+              <div style={{ width: 19, height: 19, borderRadius: "50%", border: `1.5px solid ${P.line}`, flexShrink: 0 }} />
+              <span style={{ fontSize: 13.5, color: P.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: wide ? "nowrap" : "normal" }}>{t.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tasks.length > 0 && <div style={{ fontSize: 11.5, color: P.muted, marginTop: 10 }}>{done}/{tasks.length} del plan · una sola lista, sin duplicados</div>}
     </div>
   );
 }
@@ -661,7 +763,7 @@ function TasksWidget({ P, label, hint, k, dayData, update, premium, onPremium, p
   const suggest = async () => {
     if (!premium) return onPremium();
     setAiLoading(true);
-    const r = await askClaude(`Trabajo en ${profile.role}. Sugiéreme 3 pendientes típicos de ${kind === "work" ? "mi trabajo" : "mi vida personal"} para hoy, cortos. Solo los 3, uno por línea, sin números ni preámbulo. Acentos impecables.`, null, 200);
+    const r = await askClaude(`Trabajo en ${profile.role}. Sugiéreme 3 pendientes típicos de ${kind === "work" ? "mi trabajo" : "mi tiempo personal — autocuidado, movimiento, lectura, tiempo para mí"} para hoy, cortos. Solo los 3, uno por línea, sin números ni preámbulo. Acentos impecables.`, null, 200);
     if (r) { const items = r.split("\n").map((s) => s.replace(/^[-•\d.]+\s*/, "").trim()).filter(Boolean).slice(0, 3); update({ [k]: [...tasks, ...items.map((t) => ({ text: t, done: false }))] }); }
     setAiLoading(false);
   };

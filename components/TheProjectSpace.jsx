@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { store, getUid } from "@/lib/store";
+import { store, supabase, getUid, getAuthUser, protectAccount, registerLead, signUpSpace, signInSpace } from "@/lib/store";
 import { askClaude } from "@/lib/ai";
 import ProjectView from "@/components/MiProyecto";
 import RetoView from "@/components/Reto";
@@ -56,41 +56,58 @@ export default function TheProjectSpace() {
 
   const P = (profile && PALETTES[profile.paletteKey]) || PALETTES.original;
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const prof = await store.get("tp:profile");
-        if (cancelled) return;
-        if (!prof) {
-          try {
-            const signup = await store.get("tp:signup");
-            if (signup?.name && !cancelled) setSignupName(signup.name);
-          } catch {}
-          setPhase("onboard");
-          return;
-        }
-        setProfile(prof);
-        try { if (await store.get("tp:premium")) setPremium(true); } catch {}
-        // Directo al espacio: el día se crea solo y el check-in queda opcional.
-        let today = null;
-        try { today = await store.get(`tp:day:${dayId()}`); } catch {}
-        const data = { ...emptyDay(), ...(today || {}) };
-        setDayData(data);
-        if (!today) { try { await store.set(`tp:day:${dayId()}`, data); } catch {} }
-        setPhase("dashboard");
-      } catch {
-        // Si el storage falla, arranca en onboarding
-        if (!cancelled) setPhase("onboard");
+  const init = async (cancelledRef = { current: false }) => {
+    const cancelled = () => cancelledRef.current;
+    try {
+      // Con Supabase y sin sesión → puerta de entrada (crear cuenta / entrar).
+      // Las sesiones existentes (incluidas las anónimas de antes) pasan directo.
+      if (supabase && !(await getAuthUser())) {
+        if (!cancelled()) setPhase("auth");
+        return;
       }
-    })();
+      const prof = await store.get("tp:profile");
+      if (cancelled()) return;
+      if (!prof) {
+        try {
+          const signup = await store.get("tp:signup");
+          if (signup?.name && !cancelled()) setSignupName(signup.name);
+        } catch {}
+        setPhase("onboard");
+        return;
+      }
+      setProfile(prof);
+      try { if (await store.get("tp:premium")) setPremium(true); } catch {}
+      // Directo al espacio: el día se crea solo y el check-in queda opcional.
+      let today = null;
+      try { today = await store.get(`tp:day:${dayId()}`); } catch {}
+      const data = { ...emptyDay(), ...(today || {}) };
+      setDayData(data);
+      if (!today) { try { await store.set(`tp:day:${dayId()}`, data); } catch {} }
+      setPhase("dashboard");
+    } catch {
+      // Si el storage falla, arranca en onboarding
+      if (!cancelled()) setPhase("onboard");
+    }
+  };
+
+  useEffect(() => {
+    const cancelledRef = { current: false };
+    init(cancelledRef);
     // Failsafe: si algo se cuelga, sale de loading en 1.5s
-    const t = setTimeout(() => { if (!cancelled) setPhase((p) => (p === "loading" ? "onboard" : p)); }, 1500);
-    return () => { cancelled = true; clearTimeout(t); };
+    const t = setTimeout(() => { if (!cancelledRef.current) setPhase((p) => (p === "loading" ? (supabase ? "auth" : "onboard") : p)); }, 1500);
+    return () => { cancelledRef.current = true; clearTimeout(t); };
   }, []);
 
   const saveDay = async (data) => { setDayData(data); await store.set(`tp:day:${dayId()}`, data); };
-  const completeOnboard = async (prof) => { await store.set("tp:profile", prof); setProfile(prof); await saveDay(emptyDay()); setPhase("dashboard"); };
+  const completeOnboard = async (prof) => {
+    await store.set("tp:profile", prof); setProfile(prof); await saveDay(emptyDay());
+    // Registra el lead con el correo de su cuenta (si tiene).
+    try {
+      const u = await getAuthUser();
+      if (u?.email) await registerLead({ name: prof.name, email: u.email });
+    } catch {}
+    setPhase("dashboard");
+  };
   const completeMorning = async (md) => {
     const data = { ...(dayData || emptyDay()), ...md, date: dayId(), morningDone: true, skipCheckin: false, checkinTouched: true };
     await saveDay(data); setPhase("dashboard");
@@ -141,6 +158,7 @@ export default function TheProjectSpace() {
       <Grain />
       <Blobs P={P} />
       <div style={{ position: "relative", zIndex: 2 }}>
+        {phase === "auth" && <AuthGate P={P} onDone={() => { setPhase("loading"); init(); }} />}
         {phase === "onboard" && <Onboarding onDone={completeOnboard} initialName={signupName} />}
         {phase === "morning" && <MorningCheckin P={P} profile={profile} onDone={completeMorning} />}
         {phase === "dashboard" && <Dashboard P={P} profile={profile} dayData={dayData} saveDay={saveDay} premium={premium} onPremium={() => setShowPremium(true)} onNewDay={() => setPhase("morning")} onReset={resetAll} onProfile={updateProfile} />}
@@ -159,6 +177,72 @@ function GlassStage({ children }) {
         {children}
       </div>
     </div>
+  );
+}
+
+// ═══ PUERTA DE ENTRADA: crear cuenta / iniciar sesión ═══
+// Con cuenta, su espacio la sigue a cualquier equipo. Las sesiones
+// anónimas de antes entran directo (no pasan por aquí).
+function AuthGate({ P, onDone }) {
+  const [mode, setMode] = useState("signup"); // signup | login
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr] = useState("");
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    setErr(""); setNotice("");
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) { setErr("Ese correo no se ve completo. Revísalo, porfa."); return; }
+    if (password.length < 6) { setErr("Tu contraseña necesita al menos 6 caracteres."); return; }
+    setBusy(true);
+    const cleanEmail = email.trim().toLowerCase();
+    const r = mode === "signup"
+      ? await signUpSpace({ name: "", email: cleanEmail, password })
+      : await signInSpace({ email: cleanEmail, password });
+    setBusy(false);
+    if (!r.ok) { setErr(r.error); return; }
+    if (r.needsConfirm) {
+      setNotice("Tu cuenta se creó ✦ Te enviamos un correo para confirmarla — ábrelo y luego entra aquí con tu contraseña.");
+      setMode("login");
+      return;
+    }
+    onDone();
+  };
+
+  return (
+    <GlassStage>
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 26 }}>
+        <svg width="40" height="40" viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="18.5" fill="none" stroke={P.accent} strokeWidth="1.5" />
+          <text x="20" y="27" textAnchor="middle" fontFamily={SERIF} fontSize="16" fill={P.ink}>tp</text>
+        </svg>
+        <div style={{ textAlign: "left" }}>
+          <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 17, color: P.ink, lineHeight: 1 }}>The Project</div>
+          <div style={{ fontSize: 11, letterSpacing: "0.3em", color: P.accent, marginTop: 3 }}>S P A C E</div>
+        </div>
+      </div>
+
+      <h1 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "clamp(1.9rem, 5vw, 2.7rem)", lineHeight: 1.1, margin: "0 0 12px", color: P.ink }}>
+        {mode === "signup" ? <>Tu espacio te espera.</> : <>Bienvenida de vuelta.</>}
+      </h1>
+      <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 17, color: P.accent, marginBottom: 28 }}>
+        {mode === "signup" ? "Crea tu cuenta — así tu espacio te sigue a cualquier equipo." : "Entra con tu correo y contraseña."}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 380, margin: "0 auto" }}>
+        <input className="pill-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Tu correo" type="email" autoFocus style={inputBig(P)} />
+        <input className="pill-input" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder={mode === "signup" ? "Crea una contraseña (mínimo 6)" : "Tu contraseña"} type="password" style={inputBig(P)} />
+        {err && <div style={{ fontSize: 13, color: P.accent, fontStyle: "italic" }}>{err}</div>}
+        {notice && <div style={{ fontSize: 13.5, color: P.ink, fontStyle: "italic", lineHeight: 1.5 }}>{notice}</div>}
+        <button onClick={submit} disabled={busy} style={primaryBtn(P, busy)}>
+          {busy ? (mode === "signup" ? "Creando tu cuenta…" : "Entrando…") : mode === "signup" ? "Crear mi cuenta ✦" : "Entrar a mi espacio →"}
+        </button>
+        <button onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setErr(""); setNotice(""); }} style={{ fontFamily: BODY, fontSize: 13, color: P.accent, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+          {mode === "signup" ? "¿Ya tienes cuenta? Entra aquí" : "¿Primera vez? Crea tu cuenta"}
+        </button>
+      </div>
+    </GlassStage>
   );
 }
 
@@ -338,8 +422,18 @@ function MorningCheckin({ P, profile, onDone }) {
 function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay, onReset, onProfile }) {
   const [view, setView] = useState("hoy");
   const [showPalettes, setShowPalettes] = useState(false);
+  const [anonUser, setAnonUser] = useState(false);
+  const [showProtect, setShowProtect] = useState(false);
+  const [protectLater, setProtectLater] = useState(false);
   const update = (patch) => saveDay({ ...dayData, ...patch });
   const dateStr = new Date().toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+
+  useEffect(() => {
+    (async () => {
+      const u = await getAuthUser();
+      setAnonUser(Boolean(u?.is_anonymous));
+    })();
+  }, []);
 
   return (
     <div>
@@ -367,12 +461,74 @@ function Dashboard({ P, profile, dayData, saveDay, premium, onPremium, onNewDay,
         </div>
       </div>
 
+      {/* Aviso: cuenta anónima → protégela con correo y contraseña */}
+      {anonUser && !protectLater && (
+        <div className="fade" style={{ maxWidth: 1120, margin: "0 auto", padding: "16px 24px 0" }}>
+          <div className="glass-soft" style={{ borderRadius: 100, padding: "11px 20px", display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, color: P.ink }}>
+              🔒 Tu espacio vive solo en este navegador. <span style={{ fontFamily: ITALIC, fontStyle: "italic", color: P.muted }}>Protégelo para entrar desde cualquier equipo.</span>
+            </span>
+            <span style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <button onClick={() => setShowProtect(true)} style={{ fontFamily: BODY, fontSize: 12.5, fontWeight: 600, color: P.card, background: P.accent, border: "none", borderRadius: 100, padding: "8px 15px", cursor: "pointer" }}>Proteger mi cuenta ✦</button>
+              <button onClick={() => setProtectLater(true)} style={{ fontFamily: BODY, fontSize: 12.5, color: P.muted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Luego</button>
+            </span>
+          </div>
+        </div>
+      )}
+
       {view === "hoy" && <TodayView P={P} profile={profile} dayData={dayData} update={update} premium={premium} onPremium={onPremium} onNewDay={onNewDay} onReto={() => setView("reto")} onProyecto={() => setView("proyecto")} />}
       {view === "reto" && <RetoView P={P} />}
       {view === "proyecto" && <ProjectView P={P} profile={profile} premium={premium} onPremium={onPremium} />}
       {view === "progreso" && <ProgressView P={P} profile={profile} premium={premium} onPremium={onPremium} />}
 
       {showPalettes && <PaletteModal P={P} current={profile.paletteKey} profile={profile} onProfile={onProfile} onPick={(k) => { onProfile({ paletteKey: k }); setShowPalettes(false); }} onClose={() => setShowPalettes(false)} />}
+      {showProtect && <ProtectModal P={P} onDone={() => { setAnonUser(false); setShowProtect(false); }} onClose={() => setShowProtect(false)} />}
+    </div>
+  );
+}
+
+// ── Pop-up: proteger la cuenta anónima con correo + contraseña ──
+function ProtectModal({ P, onDone, onClose }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr] = useState("");
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    setErr("");
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) { setErr("Ese correo no se ve completo. Revísalo, porfa."); return; }
+    if (password.length < 6) { setErr("Tu contraseña necesita al menos 6 caracteres."); return; }
+    setBusy(true);
+    const r = await protectAccount({ email: email.trim().toLowerCase(), password });
+    setBusy(false);
+    if (!r.ok) { setErr(r.error); return; }
+    if (r.needsConfirm) {
+      setNotice("Te enviamos un correo para confirmar — ábrelo y tu cuenta queda protegida ✦");
+      setTimeout(onDone, 4000);
+      return;
+    }
+    setNotice("Listo ✦ Ya puedes entrar desde cualquier equipo con tu correo y contraseña.");
+    setTimeout(onDone, 2500);
+  };
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(25,20,18,0.35)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, zIndex: 100 }}>
+      <div onClick={(e) => e.stopPropagation()} className="glass fade" style={{ borderRadius: "52px 80px 52px 80px", maxWidth: 460, width: "100%", padding: "40px 36px", textAlign: "center" }}>
+        <div style={{ fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: P.muted, marginBottom: 6 }}>Protege tu espacio</div>
+        <div style={{ fontFamily: SERIF, fontSize: 26, color: P.ink, marginBottom: 8 }}>Tu cuenta, en todos lados.</div>
+        <div style={{ fontFamily: ITALIC, fontStyle: "italic", fontSize: 15, color: P.muted, lineHeight: 1.55, marginBottom: 24 }}>
+          Agrega tu correo y una contraseña — todo lo que ya escribiste se queda contigo, y podrás entrar desde cualquier equipo.
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <input className="pill-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Tu correo" type="email" style={inputBig(P)} />
+          <input className="pill-input" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="Crea una contraseña (mínimo 6)" type="password" style={inputBig(P)} />
+          {err && <div style={{ fontSize: 13, color: P.accent, fontStyle: "italic" }}>{err}</div>}
+          {notice && <div style={{ fontSize: 13.5, color: P.ink, fontStyle: "italic", lineHeight: 1.5 }}>{notice}</div>}
+          <button onClick={submit} disabled={busy || Boolean(notice)} style={primaryBtn(P, busy || Boolean(notice))}>{busy ? "Protegiendo…" : "Proteger mi cuenta ✦"}</button>
+          <button onClick={onClose} style={{ fontFamily: BODY, fontSize: 13, color: P.muted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Ahora no</button>
+        </div>
+      </div>
     </div>
   );
 }

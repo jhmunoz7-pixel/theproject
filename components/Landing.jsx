@@ -60,8 +60,44 @@ function TpMark({ size = 40, color = C.ink }) {
   );
 }
 
+// ── Parallax de capas (sigue al cursor) ─────────────────────
+// Mueve un elemento en sentido contrario/afín al cursor para dar profundidad.
+function usePointerParallax(strength = 20) {
+  const ref = useRef(null);
+  const reduce = useReducedMotion();
+  useEffect(() => {
+    if (reduce) return;
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const target = { x: 0, y: 0 };
+    const cur = { x: 0, y: 0 };
+    const onMove = (e) => {
+      target.x = (e.clientX / window.innerWidth - 0.5) * 2;
+      target.y = (e.clientY / window.innerHeight - 0.5) * 2;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    const tick = () => {
+      cur.x += (target.x - cur.x) * 0.08;
+      cur.y += (target.y - cur.y) * 0.08;
+      el.style.transform = `translate3d(${(cur.x * strength).toFixed(2)}px, ${(cur.y * strength).toFixed(2)}px, 0)`;
+      if (Math.abs(target.x - cur.x) > 0.001 || Math.abs(target.y - cur.y) > 0.001) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        raf = 0;
+      }
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, [strength, reduce]);
+  return ref;
+}
+
 // ── Campo cósmico: estrellas + esporas, parallax con el mouse ──
-function CosmicField({ density = 1 }) {
+function CosmicField({ density = 1, strength = 1 }) {
   const ref = useRef(null);
   const reduce = useReducedMotion();
 
@@ -118,13 +154,26 @@ function CosmicField({ density = 1 }) {
     const draw = (t) => {
       if (!running || w === 0) return;
       ctx.clearRect(0, 0, w, h);
-      pointer.cx += (pointer.x - pointer.cx) * 0.06;
-      pointer.cy += (pointer.y - pointer.cy) * 0.06;
+      pointer.cx += (pointer.x - pointer.cx) * 0.12;
+      pointer.cy += (pointer.y - pointer.cy) * 0.12;
+
+      // Halo que sigue al cursor — la "linterna" cósmica
+      if (!reduce) {
+        const gx = (Math.max(-0.6, Math.min(0.6, pointer.cx)) + 0.5) * w;
+        const gy = (Math.max(-0.6, Math.min(0.6, pointer.cy)) + 0.5) * h;
+        const rad = Math.max(w, h) * 0.38;
+        const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, rad);
+        g.addColorStop(0, "rgba(170,180,136,0.20)");
+        g.addColorStop(0.45, "rgba(170,180,136,0.06)");
+        g.addColorStop(1, "rgba(170,180,136,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+      }
 
       for (const s of stars) {
         const tw = reduce ? 1 : 0.55 + 0.45 * Math.sin((t / 900) * s.tw + s.ph);
-        const x = s.x + pointer.cx * s.depth * 34;
-        const y = s.y + pointer.cy * s.depth * 34;
+        const x = s.x + pointer.cx * s.depth * 130 * strength;
+        const y = s.y + pointer.cy * s.depth * 130 * strength;
         ctx.beginPath();
         ctx.arc(x, y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = s.warm ? `rgba(221,212,196,${s.a * tw})` : `rgba(170,180,136,${s.a * tw})`;
@@ -145,8 +194,8 @@ function CosmicField({ density = 1 }) {
           if (m.x > w + 20) m.x = -20;
           if (m.y < -20) m.y = h + 20;
         }
-        const x = m.x + pointer.cx * m.depth * 26;
-        const y = m.y + pointer.cy * m.depth * 26;
+        const x = m.x + pointer.cx * m.depth * 90 * strength;
+        const y = m.y + pointer.cy * m.depth * 90 * strength;
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(m.rot);
@@ -193,13 +242,13 @@ function CosmicField({ density = 1 }) {
       window.removeEventListener("pointermove", onPointer);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [reduce, density]);
+  }, [reduce, density, strength]);
 
   return <canvas ref={ref} className="cosmos" aria-hidden="true" />;
 }
 
 // ── Tarjeta con inclinación 3D ──────────────────────────────
-function Tilt({ children, max = 7, className = "", style }) {
+function Tilt({ children, max = 11, className = "", style }) {
   const ref = useRef(null);
   const reduce = useReducedMotion();
 
@@ -209,7 +258,7 @@ function Tilt({ children, max = 7, className = "", style }) {
     const r = el.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width - 0.5;
     const py = (e.clientY - r.top) / r.height - 0.5;
-    el.style.transform = `perspective(1000px) rotateX(${(-py * max).toFixed(2)}deg) rotateY(${(px * max).toFixed(2)}deg) translateY(-6px)`;
+    el.style.transform = `perspective(900px) rotateX(${(-py * max).toFixed(2)}deg) rotateY(${(px * max).toFixed(2)}deg) translateY(-10px) scale(1.02)`;
     el.style.setProperty("--gx", `${((px + 0.5) * 100).toFixed(1)}%`);
     el.style.setProperty("--gy", `${((py + 0.5) * 100).toFixed(1)}%`);
     el.style.setProperty("--glare", "1");
@@ -934,6 +983,9 @@ function IconInstagram({ size = 18, color = C.ink }) {
 // ═══ LANDING ═══
 export default function Landing() {
   const [interest, setInterest] = useState("");
+  // Capas del hero que siguen al cursor: los anillos se van con él, el texto en contra
+  const orbitsRef = usePointerParallax(30);
+  const heroCopyRef = usePointerParallax(-12);
 
   const pick = useCallback((title) => {
     const map = {
@@ -1061,10 +1113,12 @@ export default function Landing() {
       >
         <div className="aurora a1" style={{ width: 620, height: 620, top: "-14%", left: "-10%", background: `radial-gradient(circle, ${C.olive}66, transparent 68%)` }} aria-hidden="true" />
         <div className="aurora a2" style={{ width: 520, height: 520, bottom: "-16%", right: "-8%", background: `radial-gradient(circle, ${C.soft}3D, transparent 70%)` }} aria-hidden="true" />
-        <Orbits />
-        <CosmicField />
+        <div ref={orbitsRef} style={{ position: "absolute", inset: 0, zIndex: 1, willChange: "transform" }} aria-hidden="true">
+          <Orbits />
+        </div>
+        <CosmicField strength={1.15} />
 
-        <div style={{ position: "relative", zIndex: 3, maxWidth: 920, animation: "tp-fade-up 1s ease both" }}>
+        <div ref={heroCopyRef} style={{ position: "relative", zIndex: 3, maxWidth: 920, animation: "tp-fade-up 1s ease both", willChange: "transform" }}>
           <div style={{ ...eyebrowLight, marginBottom: 24 }}>The Project by Fer · Find ✦ Elevate ✦ Rise</div>
           <h1
             style={{
